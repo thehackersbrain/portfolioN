@@ -5,6 +5,7 @@ import Link from './Link.astro'
 import SocialIcons from './SocialIcons.astro'
 ---
 
+<hr />
 <footer
   class="mx-auto mb-8 flex w-full max-w-3xl flex-col items-center justify-center gap-y-2 px-4 sm:mb-4 sm:flex-row sm:justify-between"
 >
@@ -14,12 +15,12 @@ import SocialIcons from './SocialIcons.astro'
     </span>
     <Separator orientation="vertical" className="hidden h-4! sm:block" />
     <p class="text-muted-foreground text-sm">
-      Made with 🤍 by <Link
-        href="https://github.com/jktrn"
+      Gaurav Raj (<Link
+        href="https://github.com/thehackersbrain"
         class="text-foreground"
         external
-        underline>enscribe</Link
-      >!
+        underline>thehackersbrain</Link
+      >)
     </p>
   </div>
   <SocialIcons links={SOCIAL_LINKS} />
