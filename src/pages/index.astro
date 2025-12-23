@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { SITE } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
 import { getFeaturedProjects, getRecentPosts } from '@/lib/data-utils'
+import { Icon } from 'astro-icon/components'
 
 const blog = await getRecentPosts(SITE.featuredPostCount)
 const projects = await getFeaturedProjects()
@@ -114,6 +115,27 @@ const websiteSchema = {
           class="ml-1.5 transition-transform group-hover:translate-x-1"
           >&rarr;</span
         >
+      </Link>
+    </div>
+  </section>
+
+  <section>
+    <div
+      class="flex flex-col items-center justify-between gap-4 rounded-xl border p-6 sm:flex-row sm:items-center sm:gap-6"
+    >
+      <div class="text-center sm:text-left">
+        <h3 class="text-xl font-medium">Want to work together?</h3>
+        <p class="text-muted-foreground mt-2 text-sm">
+          Have question, project or want to collaborate? Feel free to reach out!
+        </p>
+      </div>
+      <Link
+        href="mailto:gaurav@thehackersbrain.xyz"
+        class={buttonVariants({ variant: 'outline' }) +
+          ' group shrink-0 inline-flex items-center gap-2'}
+      >
+        <Icon name="lucide:mail" class="size-4" />
+        Contact Me
       </Link>
     </div>
   </section>
