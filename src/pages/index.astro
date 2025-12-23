@@ -10,10 +10,54 @@ import { getFeaturedProjects, getRecentPosts } from '@/lib/data-utils'
 
 const blog = await getRecentPosts(SITE.featuredPostCount)
 const projects = await getFeaturedProjects()
+
+// Person Schema for homepage SEO
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: SITE.title,
+  url: SITE.href,
+  description: SITE.description,
+}
+
+// Organization Schema
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.title,
+  url: SITE.href,
+  description: SITE.description,
+}
+
+// Website Schema
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.title,
+  url: SITE.href,
+  description: SITE.description,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${SITE.href}/blog?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}
 ---
 
 <Layout class="max-w-3xl">
   <PageHead slot="head" title="Home" />
+
+  <!-- Schema Markup for SEO -->
+  <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(organizationSchema)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+
   <section class="rounded-lg border">
     <div class="flex flex-col space-y-1.5 p-6">
       <h3 class="text-3xl leading-none font-bold">Gaurav Raj</h3>

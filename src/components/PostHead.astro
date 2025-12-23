@@ -16,10 +16,52 @@ const author =
   post.data.authors && post.data.authors.length > 0
     ? post.data.authors.join(', ')
     : SITE.author
+
+const postUrl = new URL(Astro.url.pathname, Astro.site).href
+const postImage = post?.data?.image?.src
+  ? `${SITE.href}${post.data.image.src}`
+  : image.href
+const publishedTime = post.data.date?.toISOString() || new Date().toISOString()
+// Use published time as modified time if no updatedDate field exists
+const modifiedTime = publishedTime
+
+// Article Schema for better SEO and AI/GEO optimization
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description,
+  image: postImage,
+  datePublished: publishedTime,
+  dateModified: modifiedTime,
+  author: {
+    '@type': 'Person',
+    name: author,
+    url: SITE.href,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.title,
+    url: SITE.href,
+    logo: {
+      '@type': 'ImageObject',
+      url: new URL('/reworkedmeroxdc1.webp', Astro.site).href,
+    },
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postUrl,
+  },
+  url: postUrl,
+  ...(post.data.tags &&
+    post.data.tags.length > 0 && {
+      keywords: post.data.tags.join(', '),
+    }),
+}
 ---
 
-<title>{`${title} | ${SITE.title}`}</title>
-<meta name="title" content={`${title} | ${SITE.title}`} />
+<title>{`${title} - ${SITE.title}`}</title>
+<meta name="title" content={`${title} - ${SITE.title}`} />
 <meta name="description" content={description} />
 <link rel="canonical" href={SITE.href} />
 
@@ -58,3 +100,14 @@ const author =
       return <meta property="article:tag" content={tag} />
     })
 }
+
+<!-- Enhanced Twitter Card tags -->
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={postImage} />
+<meta name="twitter:image:alt" content={title} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content={author} />
+
+<!-- Article Schema Markup for AI/GEO and Rich Snippets -->
+<script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
