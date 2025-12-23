@@ -1,10 +1,9 @@
 ---
 name: 'Berserk Arch Linux'
-description: 'This is an example project description! You should replace this with a description of your own project.'
-tags: ['Framework A', 'Library B', 'Tool C', 'Resource D']
-image: '../../../public/static/1200x630.png'
+description: 'A bleeding-edge, security-centric distro for hackers, developers, and nerds alike.'
+tags: ['Arch Linux', 'Linux', 'CI/CD', 'System Design', 'Development']
+image: './images/berserkarch.png'
 link: 'https://berserkarch.xyz'
-startDate: '2025-11-01'
-endDate: '2022-12-01'
+startDate: '2025-07-01'
 featured: true
 ---

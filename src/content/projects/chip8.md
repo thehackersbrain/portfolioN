@@ -1,10 +1,9 @@
 ---
 name: 'CHIP-8 Emulator'
-description: 'This is an example project description! You should replace this with a description of your own project.'
-tags: ['Framework A', 'Library B', 'Tool C', 'Resource D']
-image: '../../../public/static/1200x630.png'
+description: 'A from-scratch CHIP-8 virtual machine implementation focused on understanding low-level emulation concepts.'
+tags: ['Rust', 'Opcode', 'SDL2', 'QEMU', 'Memory Management']
+image: './images/chip8.png'
 link: 'https://github.com/thehackersbrain/chip8'
-startDate: '2025-11-01'
-endDate: '2022-12-01'
+startDate: '2023-03-18'
 featured: true
 ---
