@@ -5,7 +5,19 @@ import ProjectCard from '@/components/ProjectCard.astro'
 import Layout from '@/layouts/Layout.astro'
 import { getAllProjects } from '@/lib/data-utils'
 
-const projects = await getAllProjects()
+const PREVIEW_COUNT = 3
+
+const allProjects = await getAllProjects()
+// const allWritings = await getAllWritings()
+// const allResearch = await getAllResearch()
+
+const previewProjects = allProjects.slice(0, PREVIEW_COUNT)
+// const previewWritings = allWritings.slice(0, PREVIEW_COUNT)
+// const previewResearch = allResearch.slice(0, PREVIEW_COUNT)
+
+const hasMoreProjects = allProjects.length > PREVIEW_COUNT
+// const hasMoreWritings = allWritings.length > PREVIEW_COUNT
+// const hasMoreResearch = allResearch.length > PREVIEW_COUNT
 ---
 
 <Layout class="max-w-3xl">
@@ -20,9 +32,98 @@ const projects = await getAllProjects()
         <p class="mt-0">Some of the works that I've done...</p>
       </div>
 
-      <h2 class="mb-4 text-2xl font-medium">Projects</h2>
-      <div class="flex flex-col gap-4">
-        {projects.map((project) => <ProjectCard project={project} />)}
+      <!-- Projects Section -->
+      <div class="mb-12">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-2xl font-medium">Projects</h2>
+          {
+            hasMoreProjects && (
+              <a
+                href="/works/projects/2"
+                class="text-muted-foreground text-sm hover:underline"
+              >
+                View all →
+              </a>
+            )
+          }
+        </div>
+        <div class="flex flex-col gap-4">
+          {previewProjects.map((project) => <ProjectCard project={project} />)}
+        </div>
+      </div>
+
+      <!-- Writings Section -->
+      <div class="mb-12">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-2xl font-medium">Writings</h2>
+          <!-- {
+            hasMoreWritings && (
+              <a
+                href="/works/writings"
+                class="text-sm text-blue-600 hover:underline"
+              >
+                View all {allWritings.length} →
+              </a>
+            )
+          } -->
+        </div>
+        <div class="flex flex-col gap-4">
+          <!-- {
+            previewWritings.map((writing) => (
+              <a
+                href={`/writings/${writing.slug}`}
+                class="block rounded border p-4 transition hover:bg-gray-50"
+              >
+                <h3 class="font-medium">{writing.title}</h3>
+                {writing.excerpt && (
+                  <p class="mt-1 text-sm text-gray-600">{writing.excerpt}</p>
+                )}
+                {writing.date && (
+                  <p class="mt-2 text-xs text-gray-500">
+                    {new Date(writing.date).toLocaleDateString()}
+                  </p>
+                )}
+              </a>
+            ))
+          } -->
+        </div>
+      </div>
+
+      <!-- Research Section -->
+      <div class="mb-12">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-2xl font-medium">Research</h2>
+          <!-- {
+            hasMoreResearch && (
+              <a
+                href="/works/research"
+                class="text-sm text-blue-600 hover:underline"
+              >
+                View all {allResearch.length} →
+              </a>
+            )
+          } -->
+        </div>
+        <div class="flex flex-col gap-4">
+          <!-- {
+            previewResearch.map((research) => (
+              <a
+                href={`/research/${research.slug}`}
+                class="block rounded border p-4 transition hover:bg-gray-50"
+              >
+                <h3 class="font-medium">{research.title}</h3>
+                {research.excerpt && (
+                  <p class="mt-1 text-sm text-gray-600">{research.excerpt}</p>
+                )}
+                {research.date && (
+                  <p class="mt-2 text-xs text-gray-500">
+                    {new Date(research.date).toLocaleDateString()}
+                  </p>
+                )}
+              </a>
+            ))
+          } -->
+        </div>
       </div>
     </div>
   </section>

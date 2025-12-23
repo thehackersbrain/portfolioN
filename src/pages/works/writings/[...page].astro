@@ -1,0 +1,121 @@
+---
+import Breadcrumbs from '@/components/Breadcrumbs.astro'
+import PageHead from '@/components/PageHead.astro'
+import Layout from '@/layouts/Layout.astro'
+import { getAllResearch } from '@/lib/data-utils'
+
+export async function getStaticPaths({ paginate }) {
+    const research = await getAllResearch()
+
+    return paginate(research, {
+        pageSize: 10,
+    })
+}
+
+const { page } = Astro.props
+---
+
+<Layout class="max-w-3xl">
+    <PageHead
+        slot="head"
+        title={`Research${page.currentPage > 1 ? ` - Page ${page.currentPage}` : ''}`}
+    />
+    <Breadcrumbs
+        items={[
+            { label: 'Works', href: '/works' },
+            { label: 'Research', icon: 'lucide:microscope' },
+        ]}
+    />
+
+    <section>
+        <div class="min-w-full">
+            <h1 class="mb-2 text-3xl font-bold">Research</h1>
+            <p class="mb-8 text-gray-600">
+                Showing {page.start + 1}-{page.end + 1} of {page.total} research
+                items
+            </p>
+
+            <div class="mb-8 flex flex-col gap-4">
+                {
+                    page.data.map((research) => (
+                        <a
+                            href={`/research/${research.slug}`}
+                            class="block rounded border p-4 transition hover:bg-gray-50"
+                        >
+                            <h3 class="text-lg font-medium">
+                                {research.title}
+                            </h3>
+                            {research.excerpt && (
+                                <p class="mt-2 text-sm text-gray-600">
+                                    {research.excerpt}
+                                </p>
+                            )}
+                            <div class="mt-3 flex items-center gap-4 text-xs text-gray-500">
+                                {research.date && (
+                                    <time datetime={research.date}>
+                                        {new Date(
+                                            research.date,
+                                        ).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </time>
+                                )}
+                                {research.category && (
+                                    <span class="rounded bg-gray-100 px-2 py-1">
+                                        {research.category}
+                                    </span>
+                                )}
+                            </div>
+                        </a>
+                    ))
+                }
+            </div>
+
+            <!-- Pagination Controls -->
+            {
+                page.lastPage > 1 && (
+                    <nav
+                        class="flex items-center justify-between border-t pt-4"
+                        aria-label="Pagination"
+                    >
+                        <div class="flex gap-2">
+                            {page.url.prev ? (
+                                <a
+                                    href={page.url.prev}
+                                    class="rounded border px-4 py-2 transition hover:bg-gray-50"
+                                    rel="prev"
+                                >
+                                    ← Previous
+                                </a>
+                            ) : (
+                                <span class="cursor-not-allowed rounded border px-4 py-2 text-gray-400">
+                                    ← Previous
+                                </span>
+                            )}
+
+                            {page.url.next ? (
+                                <a
+                                    href={page.url.next}
+                                    class="rounded border px-4 py-2 transition hover:bg-gray-50"
+                                    rel="next"
+                                >
+                                    Next →
+                                </a>
+                            ) : (
+                                <span class="cursor-not-allowed rounded border px-4 py-2 text-gray-400">
+                                    Next →
+                                </span>
+                            )}
+                        </div>
+
+                        <span class="text-sm text-gray-600">
+                            Page {page.currentPage} of {page.lastPage}
+                        </span>
+                    </nav>
+                )
+            }
+        </div>
+    </section>
+</Layout>
