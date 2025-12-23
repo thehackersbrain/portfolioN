@@ -36,6 +36,10 @@ export const SOCIAL_LINKS: SocialLink[] = [
     label: 'Twitter',
   },
   {
+    href: 'https://instagram.com/thehackersbrain',
+    label: 'Instagram',
+  },
+  {
     href: 'mailto:gaurav@thehackersbrain.xyz',
     label: 'Email',
   },
@@ -52,4 +56,5 @@ export const ICON_MAP: IconMap = {
   Twitter: 'lucide:twitter',
   Email: 'lucide:mail',
   RSS: 'lucide:rss',
+  Instagram: 'lucide:instagram',
 }
