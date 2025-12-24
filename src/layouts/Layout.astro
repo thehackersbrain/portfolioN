@@ -21,8 +21,22 @@ const { class: className } = Astro.props
   lang={SITE.locale}
 >
   <Head>
+    <!-- Google tag (gtag.js) -->
+    <script
+      is:inline
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CEG2JP4Y9V"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-CEG2JP4Y9V')
+    </script>
     <slot name="head" />
   </Head>
+
   <body class="flex h-fit min-h-screen flex-col gap-y-6 font-sans">
     <header
       class="bg-background/50 sticky top-0 z-50 divide-y backdrop-blur-sm xl:divide-none"
