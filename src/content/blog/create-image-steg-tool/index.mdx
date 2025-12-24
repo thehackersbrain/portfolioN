@@ -1,0 +1,237 @@
+---
+title: Create an Image Steganography Program in Python
+description: Discover how to create an image steganography tool in Python. Learn to securely hide and extract data within PNG images using PIL and cryptography modules.
+date: 2025-03-28
+tags: ['steganography', 'python', 'programming', 'cryptography', 'cybersecurity', 'thehackersbrain']
+image: 'assets/banner.png'
+authors: ['thehackersbrain']
+---
+
+# Introduction
+
+Hello There, Myself Gaurav Raj (Hacker, Programmer & FreeLancer). In this article we’re going to create a Image steganography tool in Python. Many people say that programming is not essential or neccessary in Ethical Hacking, but rather I think being able to program in atleast one or more programming language or else just knowing how to read code is one of the greatest advantages that a Hacker can have.
+
+Let’s start the article. In today’s world, data security is a top priority. We often need to share confidential data with others, but we are not sure if it will remain confidential. So, we need to find ways to secure the data before sharing it. One way to achieve this is by hiding the data inside an image, which looks like an ordinary image but contains some hidden information inside it. In this blog post, we will discuss a Python program that can hide any data inside a `PNG` or image file using the `Python Imaging Library` (`PIL`) and the `cryptography` module. Before we begin, let’s understand some concepts that we will be using in this program:
+
+1. _PNG_ (`Portable Network Graphics`): _PNG_ is a lossless image format that supports transparency. It uses a _DEFLATE_ compression algorithm to compress the image data.
+2. _Cryptography_: Cryptography is a technique of securing communication from adversaries. It involves techniques such as encryption and decryption.
+
+## Structure of the PNG File
+
+![Structure of a PNG File](https://miro.medium.com/v2/resize:fit:1100/format:webp/0*KQYnKDhmrcsXihlS.png)
+
+A PNG file is composed of multiple chunks of data. Each chunk contains a _header_, _data_, and a CRC (`Cyclic Redundancy Check`) field used to ensure data integrity. The first chunk is always the `IHDR` (_Image Header_) chunk, which contains basic information about the image such as its size, color type, and compression method. After the _IHDR_ chunk, there can be multiple `IDAT` (_Image Data_) chunks, which contain the compressed pixel data of the image. These chunks can be split into multiple blocks to aid in the decompression process. Other chunks that can appear in a PNG file include `tEXt` (_Textual Data_), `zTXt` (_Compressed Textual Data_), and `iTXt` (_International Textual Data_), which can contain metadata about the image or additional information. Finally, there is always an `IEND` (_Image End_) chunk, which marks the end of the file. To hide data in a PNG file using steganography, the data is typically inserted into the `IDAT` chunks, as they contain the actual pixel data of the image. By modifying certain bits in the IDAT chunk, the data can be hidden without visibly altering the image. However, this can make the file slightly larger and may affect the image quality if not done properly.
+
+Now, let's dive into the code.
+
+```py title="hiddenpngpy/functions.py" caption="Necessary Imports" showLineNumbers
+from PIL import Image
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import padding
+from base64 import urlsafe_b64encode
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from rich.layout import Layout
+```
+
+```python title="hiddenpngpy/__main__.py" caption="Necessary Imports" showLineNumbers
+from rich import print
+from rich.panel import Panel
+from rich.align import Align
+from rich import box
+import argparse
+from sys import exit
+from hiddenpng.functions import generate_key, hide_data, extract_data, make_layout # noqa
+from rich.live import Live
+from time import sleep
+```
+
+The code starts by importing the necessary modules: _PIL_, _cryptography_, _argparse_, _sys_, and _base64_. These modules are used for image processing, cryptography, parsing command-line arguments, system-level operations, and encoding data, respectively. The next step is to define some functions that will be used later in the program. The first function is `generate_key()`, which generates a secret key from a given keyword using the `PBKDF2HMAC` algorithm. The `PBKDF2HMAC` algorithm is a key derivation function that takes a password, salt, and other parameters to generate a cryptographic key. The function returns a URL-safe _base64-encoded_ key.
+
+```python title="hiddenpngpy/functions.py" caption="Key Generation Function" showLineNumbers
+def generate_key(keyword) -> bytes:
+    salt = b'QP9&PJ&V&2sm&U3l'
+    kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=480000
+            )
+    key = urlsafe_b64encode(kdf.derive(bytes(keyword, 'utf-8')))
+    return key
+```
+
+The second function is `encrypt_data()`, which encrypts the given data using the Fernet algorithm. Fernet is a symmetric encryption algorithm that uses _AES_ encryption in _CBC_ mode with _PKCS7_ padding. The function returns the encrypted data.
+
+```python title="hiddenpngpy/functions.py"
+def encrypt_data(data, key) -> bytes:
+    f = Fernet(key)
+    return f.encrypt(data)
+```
+
+The third function is `decrypt_data()`, which decrypts the given encrypted data using the same key that was used for encryption. The function returns the decrypted data.
+
+```python title="hiddenpngpy/functions.py"
+def decrypt_data(encrypted_data, key) -> bytes:
+    f = Fernet(key)
+    return f.decrypt(encrypted_data)
+```
+
+The fourth function is `hide_data()`, which hides the given data inside a PNG image. The function takes the path of the input image, the path of the output image, the data to be hidden, and the key as input parameters. The function first opens the input image using the `Image.open()` method of the _PIL_ module. It then converts the data into bytes and encrypts it using the `encrypt_data()` function. The encrypted data is then converted into a binary string, and the size of the binary string is checked against the maximum data size that can be hidden in the image. If the data size is larger than the maximum size, a _ValueError_ is raised. The function then iterates over each pixel of the image and replaces the least significant bit of the red, green, and blue color channels with the bits of the encrypted data until all the data is hidden. Finally, the function saves the modified image to the output path.
+
+```python title="hiddenpngpy/functions.py" caption="Hide Data Function" showLineNumbers
+def hide_data(image_path, output_path, data, key) -> None:
+    image = Image.open(image_path)
+    data_bytes = data.encode()
+    encrypted_data = encrypt_data(data_bytes, key)
+    binary_data = ''.join(format(byte, '08b') for byte in encrypted_data)
+    width, height = image.size
+    data_size = len(binary_data)
+    max_data_size = width * height * 3
+    if data_size > max_data_size:
+        raise ValueError('Data too large for image.')
+    data_index = 0
+    for y in range(height):
+        for x in range(width):
+            pixel = list(image.getpixel((x, y)))
+            for i in range(3):
+                if data_index < data_size:
+                    bit = binary_data[data_index]
+                    pixel[i] = (pixel[i] & 0b11111110) | int(bit)
+                    data_index += 1
+            image.putpixel((x, y), tuple(pixel))
+    image.save(output_path)
+```
+
+The fifth function is `extract_data()`, which extracts the hidden data from a PNG image. The function takes the path of the input image and the key as input parameters. The function first opens the input image using the `Image.open()` method of the _PIL_ module. It then iterates over each pixel of the image and extracts the least significant bit of the red, green, and blue color channels and converts it into a binary string. The binary strings are then concatenated to form the encrypted data in binary format. The function then removes any padding that was added during encryption and converts the binary data into bytes. The bytes are then decrypted using the `decrypt_data()` function, and the decrypted data is returned.
+
+```python title="hiddenpngpy/functions.py" caption="Extract Data Function" showLineNumbers
+def extract_data(image_path, key) -> bytes:
+    image = Image.open(image_path)
+    width, height = image.size
+    data = []
+    for y in range(height):
+        for x in range(width):
+            pixel = image.getpixel((x, y))
+            bit_string = ''.join([str(pixel[i] & 1) for i in range(3)])
+            data.append(bit_string)
+
+    binary_data = ''.join(data)
+    padding_length = len(binary_data) % 8
+    if padding_length != 0:
+        binary_data = binary_data[:-padding_length]
+    binary_data = bytes([int(binary_data[i:i+8], 2) for i in range(0, len(binary_data), 8)]) # noqa
+    padder = padding.PKCS7(256).padder()
+    key = padder.update(key) + padder.finalize()
+    decrypted_data = decrypt_data(binary_data, key)
+ return decrypted_data
+```
+
+The next function is `parse_arguments()`, which parses the command-line arguments passed to the program using the argparse module.
+
+```python title="hiddenpngpy/__main__.py" caption="Parse Arguments Function" showLineNumbers
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Hide any data inside an Image file. NOTE: This program only works with png files.") # noqa
+    parser.add_argument(
+        "-e",
+        "--extract",
+        help="Calls the tool to extract data from image.",
+        action="store_true"
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        help="Specify the input file for hiding data",
+        required=True
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Specify the output file or else the default will be used.",
+    )
+    parser.add_argument(
+        "-k",
+        "--key",
+        help="Specify the secret key.",
+        required=True
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        help="Specify the data to be hidden."
+    )
+    return parser.parse_args()
+```
+
+The `main()` function of the program is to handle the flow of execution. The program first checks if the input file is a PNG image file or not. If it is not a PNG image file, the program will display an error message and exit. Next, the program generates a key from the password provided by the user. The key is used to encrypt and decrypt the hidden data. If the `args.extract` flag is not set, the program tries to hide the data inside the PNG image file. It checks if the data to be hidden is specified or not. If the data is not specified, the program will display an error message and exit. If the data is specified, the program calls the `hide_data()` function to hide the data inside the PNG image file. If the `args.extract` flag is set, the program tries to extract the hidden data from the PNG image file. It first calls the `extract_data()` function to extract the data from the PNG image file. It then displays the extracted data in a formatted panel using the `Panel()` function from the `rich` library. The program also writes the extracted data to a file named `data.log`. If an error occurs during the execution of the program, it displays an error message and exits the program. Overall, this program provides a simple way to hide data inside a PNG image file for secure communication or storage. Once the data is encrypted, the program converts the encrypted data into binary form using the `format()` and `join()` functions. Then, the program opens the input image using the `open()` function provided by the PIL library, and stores its width and height in the variables width and height, respectively. Next, the program calculates the maximum amount of data that can be hidden in the image, which is equal to the product of the image’s width, height, and 3 (because each pixel in the image is represented by three values - red, green, and blue). If the size of the binary data is greater than the maximum allowed size, the program raises a _ValueError_ exception. The program then iterates over each pixel in the image, extracting the red, green, and blue values of each pixel using the `getpixel()` function, and modifying the least significant bit (LSB) of each color value to store one bit of the binary data. The program continues to modify the LSBs of each color value until all the binary data has been hidden in the image. Finally, the program saves the modified image using the `save()` function provided by the PIL library. To extract hidden data from an image, the program opens the input image and stores its width and height in the variables width and height, respectively. The program then iterates over each pixel in the image, extracting the LSB of each color value and storing it as a binary string. Once all the LSBs have been extracted, the program concatenates them together to form the binary data. If the length of the binary data is not a multiple of 8, the program removes the extra bits at the end of the binary data. The program then converts the binary data back to bytes using the `bytes()` function, and decrypts the data using the `decrypt_data()` function. If a padding scheme was used during encryption, the program removes the padding using the `padder()` function provided by the cryptography library. Finally, the program prints the decrypted data to the console.
+
+```python title="hiddenpngpy/__main__.py" caption="Main Function" showLineNumbers
+def main():
+    args = parse_arguments()
+
+    if (args.input.split('.')[1].lower() != 'png'):
+        print("[[bold red]!![/]] This Program only works with 'png' filetypes.") # noqa
+        exit(1)
+    input_file = args.input
+    if (not isfile(args.input)):
+        print("[[bold red]!![/]] File doesn't exists on the system.")
+        exit(1)
+    key = generate_key(args.key)
+    if (not args.extract):
+        output_file = "default.png"
+        if (args.output):
+            output_file = args.output
+        if (args.data):
+            try:
+                hide_data(input_file, output_file, args.data, key)
+            except KeyboardInterrupt:
+                exit(1)
+            except Exception as err:
+                print("[[bold red]!![/]] Unknown error occurred...\n{}".format(err)) # noqa
+            print("[[bold green]s[/]] Data hidden successfully...")
+        else:
+            print("[[bold red]-[/]] Data is not specified...")
+            exit(1)
+    else:
+        try:
+            data = extract_data(input_file, key)
+            pdata = Panel(
+                        Align.center("[green]{}[/]".format(data.decode('utf-8')), vertical="middle"), # noqa
+                        box=box.ROUNDED,
+                        padding=(1, 2),
+                        title="[bold cyan]Extracted Data from the File[/]",
+                        border_style="blue"
+                    )
+            authorc = Panel(
+                    Align.center("Created by: [bold cyan]Gaurav Raj[/] [[italic green link='@thehackersbrain[/">https://github.com/thehackersbrain/']@thehackersbrain[/]]"), # noqa
+                    box=box.ROUNDED,
+                    padding=(1, 2),
+                    title="[bold cyan]Author[/]",
+                    border_style="blue"
+                    )
+            layout = make_layout()
+            layout['main'].update(pdata)
+            layout['footer'].update(authorc)
+            try:
+                with Live(layout, screen=True):
+                    print(layout)
+                    with open('data.log', 'wb') as outfile:
+                        outfile.write(data)
+                    sleep(10)
+            except KeyboardInterrupt:
+                pass
+        except Exception as err:
+            print("[[bold red]!![/]] Unknown error occurred...\n{}".format(err)) # noqa
+```
+
+The program takes several command-line arguments, including the input and output image paths, the encryption key, and the data to be hidden in the image. The program also provides an option to extract hidden data from an image using the `-e` or `--extract` command-line argument. The complete program can be found on my github repository from [here](https://github.com/thehackersbrain/hiddenpngpy)
+
+Installation of the program is relatively easy, just git clone the repository and install the program using pip3.
+
+```bash
+$ git clone https://github.com/thehackersbrain/hiddenpngpy.git
+$ cd hiddenpngpy
+$ pip3 install -e .
+```
+
+In summary, the program works by converting data to binary form, modifying the LSBs of each color value in an image to store the binary data, and then extracting the LSBs of each color value to recover the binary data. The program uses encryption to ensure the security of the hidden data, and provides a command-line interface for easy use. Thanks for reading this article, hope you all liked it and don’t forget to share if you did, So stay tuned until next time :)

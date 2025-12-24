@@ -22,7 +22,7 @@ export default defineConfig({
   site: 'https://thehackersbrain.xyz',
   integrations: [
     expressiveCode({
-      themes: ['github-light', 'github-dark'],
+      themes: ['github-light', 'github-dark', 'one-dark-pro'],
       plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
       useDarkModeMediaQuery: false,
       themeCssSelector: (theme) => `[data-theme="${theme.name.split('-')[1]}"]`,
@@ -96,7 +96,8 @@ export default defineConfig({
         {
           theme: {
             light: 'github-light',
-            dark: 'github-dark',
+            // dark: 'github-dark',
+            dark: 'one-dark-pro',
           },
         },
       ],

