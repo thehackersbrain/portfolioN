@@ -2,7 +2,8 @@
 name: 'GBootLoader'
 description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
 tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
-image: './images/snapgram.png'
+image: './images/gbootloader.png'
 link: 'https://github.com/thehackersbrain/gbootloader'
-startDate: '2022-11-01'
+startDate: '2022-07-04'
+endDate: '2022-07-05'
 ---

@@ -1,8 +1,8 @@
 ---
 name: 'Hiddenwave - Audio Steganography Tool'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
-image: './images/snapgram.png'
+description: 'Hiddenwave is an audio steganography tool written in C++ for hiding your files or messages inside a .wav or .mp3 audio file.'
+tags: ['C++', 'Audio', 'Steganography', 'Encryption', 'AES Algorithm']
+image: './images/hiddenwave.png'
 link: 'https://github.com/thehackersbrain/hiddenwave'
-startDate: '2022-11-01'
+startDate: '2021-05-05'
 ---

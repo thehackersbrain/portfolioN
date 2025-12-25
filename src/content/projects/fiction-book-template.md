@@ -2,7 +2,8 @@
 name: 'Fiction Book Latex Template'
 description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
 tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
-image: './images/snapgram.png'
+image: './images/fiction-book-template.png'
 link: 'https://github.com/thehackersbrain/fiction-book-template'
-startDate: '2022-11-01'
+startDate: '2025-02-18'
+endDate: '2025-02-18'
 ---
