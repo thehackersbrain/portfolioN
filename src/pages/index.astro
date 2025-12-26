@@ -59,10 +59,10 @@ const websiteSchema = {
   />
   <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
 
-  <section class="rounded-lg border">
+  <section class="rounded-lg rounded-tl-none rounded-br-none border">
     <div class="flex flex-col space-y-1.5 p-6">
-      <h1 class="text-3xl leading-none font-bold">Gaurav Raj</h1>
-      <p class="text-muted-foreground text-sm">
+      <h1 class="font-tech text-3xl leading-none font-bold">Gaurav Raj</h1>
+      <p class="text-muted-foreground font-s-tech text-sm font-normal">
         Security Researcher &amp; Software Engineer
       </p>
     </div>
@@ -78,7 +78,7 @@ const websiteSchema = {
   </section>
 
   <section class="featured-projects">
-    <h2 class="mb-3 text-2xl font-medium">Featured Projects</h2>
+    <h2 class="font-ss-tech mb-3 text-2xl font-bold">Featured Projects</h2>
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => <PFCard project={project} />)}
     </div>
@@ -96,7 +96,7 @@ const websiteSchema = {
   </section>
 
   <section class="flex flex-col gap-y-4">
-    <h2 class="text-2xl font-medium">Latest posts</h2>
+    <h2 class="font-ss-tech text-2xl font-bold">Latest posts</h2>
     <ul class="flex flex-col gap-y-4">
       {
         blog.map((post) => (
@@ -124,7 +124,7 @@ const websiteSchema = {
       class="flex flex-col items-center justify-between gap-4 rounded-xl border p-6 sm:flex-row sm:items-center sm:gap-6"
     >
       <div class="text-center sm:text-left">
-        <h3 class="text-xl font-medium">Want to work together?</h3>
+        <h3 class="font-ss-tech text-xl font-bold">Want to work together?</h3>
         <p class="text-muted-foreground mt-2 text-sm">
           Have question, project or want to collaborate? Feel free to reach out!
         </p>
