@@ -6,4 +6,5 @@ image: './images/gbootloader.png'
 link: 'https://github.com/thehackersbrain/gbootloader'
 startDate: '2022-07-04'
 endDate: '2022-07-05'
+categories: ['research']
 ---

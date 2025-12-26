@@ -6,4 +6,5 @@ image: './images/gkernel.png'
 link: 'https://github.com/thehackersbrain/gkernel'
 startDate: '2022-07-04'
 endDate: '2022-07-05'
+categories: ['research']
 ---
