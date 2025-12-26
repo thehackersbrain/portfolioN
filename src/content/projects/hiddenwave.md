@@ -5,4 +5,5 @@ tags: ['C++', 'Audio', 'Steganography', 'Encryption', 'AES Algorithm']
 image: './images/hiddenwave.png'
 link: 'https://github.com/thehackersbrain/hiddenwave'
 startDate: '2021-05-05'
+categories: ['cybersec']
 ---

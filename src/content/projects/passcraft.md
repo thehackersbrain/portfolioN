@@ -6,4 +6,5 @@ image: './images/passcraft.png'
 link: 'https://github.com/thehackersbrain/passcraft'
 startDate: '2023-05-13'
 endDate: '2023-06-03'
+categories: ['cybersec']
 ---

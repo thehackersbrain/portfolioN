@@ -2,22 +2,24 @@
 import Breadcrumbs from '@/components/Breadcrumbs.astro'
 import PageHead from '@/components/PageHead.astro'
 import ProjectCard from '@/components/ProjectCard.astro'
+import WorkCategory from '@/components/WorkCategory.astro'
 import Layout from '@/layouts/Layout.astro'
-import { getAllProjects } from '@/lib/data-utils'
+import { getAllProjects, getProjectsByCategory } from '@/lib/data-utils'
 
 const PREVIEW_COUNT = 3
 
 const allProjects = await getAllProjects()
+const allCyberSec = await getProjectsByCategory('cybersec')
+const allResearch = await getProjectsByCategory('research')
 // const allWritings = await getAllWritings()
-// const allResearch = await getAllResearch()
 
 const previewProjects = allProjects.slice(0, PREVIEW_COUNT)
-// const previewWritings = allWritings.slice(0, PREVIEW_COUNT)
-// const previewResearch = allResearch.slice(0, PREVIEW_COUNT)
+const previewCyberSec = allCyberSec.slice(0, PREVIEW_COUNT)
+const previewResearch = allResearch.slice(0, PREVIEW_COUNT)
 
 const hasMoreProjects = allProjects.length > PREVIEW_COUNT
-// const hasMoreWritings = allWritings.length > PREVIEW_COUNT
-// const hasMoreResearch = allResearch.length > PREVIEW_COUNT
+const hasMoreCyberSec = allCyberSec.length > PREVIEW_COUNT
+const hasMoreResearch = allResearch.length > PREVIEW_COUNT
 ---
 
 <Layout class="max-w-3xl">
@@ -35,7 +37,7 @@ const hasMoreProjects = allProjects.length > PREVIEW_COUNT
       <!-- Projects Section -->
       <div class="mb-12">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-ss-tech text-2xl font-bold">Projects</h2>
+          <h2 class="font-ss-tech text-2xl font-bold">All Projects</h2>
           {
             hasMoreProjects && (
               <a
@@ -51,80 +53,23 @@ const hasMoreProjects = allProjects.length > PREVIEW_COUNT
           {previewProjects.map((project) => <ProjectCard project={project} />)}
         </div>
       </div>
+      <hr />
 
-      <!-- Writings Section -->
-      <div class="mb-12">
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-ss-tech text-2xl font-bold">Writings</h2>
-          <!-- {
-            hasMoreWritings && (
-              <a
-                href="/works/writings"
-                class="text-sm text-blue-600 hover:underline"
-              >
-                View all {allWritings.length} →
-              </a>
-            )
-          } -->
-        </div>
-        <div class="flex flex-col gap-4">
-          <!-- {
-            previewWritings.map((writing) => (
-              <a
-                href={`/writings/${writing.slug}`}
-                class="block rounded border p-4 transition hover:bg-gray-50"
-              >
-                <h3 class="font-medium">{writing.title}</h3>
-                {writing.excerpt && (
-                  <p class="mt-1 text-sm text-gray-600">{writing.excerpt}</p>
-                )}
-                {writing.date && (
-                  <p class="mt-2 text-xs text-gray-500">
-                    {new Date(writing.date).toLocaleDateString()}
-                  </p>
-                )}
-              </a>
-            ))
-          } -->
-        </div>
-      </div>
+      <!-- Cyber Security Section -->
+      <WorkCategory
+        title="Cyber Security"
+        projects={previewCyberSec}
+        hasMoreProjects={hasMoreCyberSec}
+        endpoint="cybersecurity"
+      />
 
       <!-- Research Section -->
-      <div class="mb-12">
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-ss-tech text-2xl font-bold">Research</h2>
-          <!-- {
-            hasMoreResearch && (
-              <a
-                href="/works/research"
-                class="text-sm text-blue-600 hover:underline"
-              >
-                View all {allResearch.length} →
-              </a>
-            )
-          } -->
-        </div>
-        <div class="flex flex-col gap-4">
-          <!-- {
-            previewResearch.map((research) => (
-              <a
-                href={`/research/${research.slug}`}
-                class="block rounded border p-4 transition hover:bg-gray-50"
-              >
-                <h3 class="font-medium">{research.title}</h3>
-                {research.excerpt && (
-                  <p class="mt-1 text-sm text-gray-600">{research.excerpt}</p>
-                )}
-                {research.date && (
-                  <p class="mt-2 text-xs text-gray-500">
-                    {new Date(research.date).toLocaleDateString()}
-                  </p>
-                )}
-              </a>
-            ))
-          } -->
-        </div>
-      </div>
+      <WorkCategory
+        title="Writings & Research"
+        projects={previewResearch}
+        hasMoreProjects={hasMoreResearch}
+        endpoint="writings-and-research"
+      />
     </div>
   </section>
 </Layout>

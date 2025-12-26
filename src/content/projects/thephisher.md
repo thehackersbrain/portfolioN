@@ -6,4 +6,5 @@ image: './images/thephisher.png'
 link: 'https://github.com/thehackersbrain/thephisher'
 startDate: '2020-09-14'
 endDate: '2020-12-04'
+categories: ['cybersec']
 ---

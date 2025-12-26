@@ -6,4 +6,5 @@ image: './images/dockerhackinglab.png'
 link: 'https://github.com/thehackersbrain/dockerhackinglab'
 startDate: '2024-12-01'
 endDate: '2024-12-01'
+categories: ['cybersec']
 ---

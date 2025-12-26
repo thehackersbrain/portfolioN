@@ -6,4 +6,5 @@ image: './images/cupp.png'
 link: 'https://github.com/thehackersbrain/cupp'
 startDate: '2022-04-29'
 endDate: '2022-05-01'
+categories: ['cybersec']
 ---

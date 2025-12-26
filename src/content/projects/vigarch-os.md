@@ -6,4 +6,5 @@ image: './images/vigarch.png'
 link: 'https://github.com/cybercraftlabs/vigarch-os'
 startDate: '2024-04-01'
 endDate: '2024-04-12'
+categories: ['cybersec']
 ---

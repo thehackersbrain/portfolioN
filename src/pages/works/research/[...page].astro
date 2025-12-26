@@ -1,0 +1,65 @@
+---
+import Breadcrumbs from '@/components/Breadcrumbs.astro'
+import PageHead from '@/components/PageHead.astro'
+import ProjectCard from '@/components/ProjectCard.astro'
+import PaginationComponent from '@/components/ui/pagination'
+import Layout from '@/layouts/Layout.astro'
+import { getProjectsByCategory } from '@/lib/data-utils'
+import type { Page, PaginateFunction } from 'astro'
+
+type Project = Awaited<ReturnType<typeof getProjectsByCategory>>[number]
+
+export async function getStaticPaths({
+    paginate,
+}: {
+    paginate: PaginateFunction
+}) {
+    const projects = await getProjectsByCategory('research')
+
+    return paginate(projects, {
+        pageSize: 3,
+    })
+}
+
+interface Props {
+    page: Page<Project>
+}
+
+const { page } = Astro.props
+---
+
+<Layout class="max-w-3xl">
+    <PageHead
+        slot="head"
+        title={`Projects${page.currentPage > 1 ? ` - Page ${page.currentPage}` : ''}`}
+    />
+    <Breadcrumbs
+        items={[
+            {
+                label: 'Works',
+                href: '/works',
+                icon: 'lucide:gallery-vertical-end',
+            },
+            { label: 'Research', icon: 'lucide:book-open' },
+        ]}
+    />
+
+    <section>
+        <div class="min-w-full">
+            <p class="text-muted-foreground mb-4 text-right text-sm">
+                Showing {page.start + 1}-{page.end + 1} of {page.total} projects
+            </p>
+
+            <div class="mb-8 flex flex-col gap-4">
+                {page.data.map((project) => <ProjectCard project={project} />)}
+            </div>
+
+            <PaginationComponent
+                currentPage={page.currentPage}
+                totalPages={page.lastPage}
+                baseUrl="/works/research/"
+                client:load
+            />
+        </div>
+    </section>
+</Layout>

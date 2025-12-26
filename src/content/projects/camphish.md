@@ -6,4 +6,5 @@ image: './images/camphish.png'
 link: 'https://github.com/thehackersbrain/camphish'
 startDate: '2020-09-28'
 endDate: '2021-04-21'
+categories: ['cybersec']
 ---

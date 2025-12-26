@@ -6,4 +6,5 @@ image: './images/hiddenpng.png'
 link: 'https://github.com/thehackersbrain/hiddenpng'
 startDate: '2023-02-09'
 endDate: '2023-02-09'
+categories: ['cybersec']
 ---

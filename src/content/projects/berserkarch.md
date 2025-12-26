@@ -6,4 +6,5 @@ image: './images/berserkarch.png'
 link: 'https://berserkarch.xyz'
 startDate: '2025-07-01'
 featured: true
+categories: ['cybersec']
 ---

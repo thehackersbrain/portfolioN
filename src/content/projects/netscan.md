@@ -6,4 +6,5 @@ image: './images/netscan.png'
 link: 'https://github.com/thehackersbrain/netscan'
 startDate: '2021-05-31'
 endDate: '2021-05-31'
+categories: ['cybersec']
 ---

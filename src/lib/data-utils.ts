@@ -41,6 +41,18 @@ export async function getFeaturedProjects(): Promise<CollectionEntry<'projects'>
     })
 }
 
+export async function getProjectsByCategory(category: string): Promise<CollectionEntry<'projects'>[]> {
+  const projects = await getCollection('projects')
+  return projects
+    .filter((project) => project.data.categories?.includes(category))
+    .sort((a, b) => {
+      const dateA = a.data.startDate?.getTime() || 0
+      const dateB = b.data.startDate?.getTime() || 0
+      return dateB - dateA
+    })
+}
+
+
 export async function getAllTags(): Promise<Map<string, number>> {
   const posts = await getAllPosts()
   return posts.reduce((acc, post) => {
