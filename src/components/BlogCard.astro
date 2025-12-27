@@ -65,7 +65,10 @@ const subpostCount = !isSubpost(entry.id) ? await getSubpostCount(entry.id) : 0
                     fallback={author.name[0]}
                     className="size-5 rounded-full"
                   />
-                  <span>{author.name}</span>
+                  <span>
+                    {author.name}
+                    {author.alias ? `(${author.alias})` : ''}
+                  </span>
                 </div>
               ))}
               <Separator orientation="vertical" className="h-4!" />

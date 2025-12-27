@@ -150,10 +150,16 @@ const tocSections = await getTOCSections(currentPostId)
                         underline
                         class="text-foreground"
                       >
-                        <span>{author.name}</span>
+                        <span>
+                          {author.name}
+                          {author.alias ? `(${author.alias})` : ''}
+                        </span>
                       </Link>
                     ) : (
-                      <span>{author.name}</span>
+                      <span>
+                        {author.name}
+                        {author.alias ? `(${author.alias})` : ''}
+                      </span>
                     )}
                   </div>
                 ))}

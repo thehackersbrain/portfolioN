@@ -1,5 +1,6 @@
 ---
-name: 'thehackersbrain'
+name: 'Gaurav Raj'
+alias: 'thehackersbrain'
 pronouns: 'researcher/developer'
 avatar: 'https://avatars.githubusercontent.com/u/36809025?v=4'
 bio: 'Just a tech'

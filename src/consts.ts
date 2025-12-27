@@ -3,7 +3,7 @@ import type { IconMap, SocialLink, Site } from '@/types'
 export const SITE: Site = {
   title: 'thehackersbrain | Gaurav Raj - Security Researcher',
   description:
-    'I\'m Gaurav (thehackersbrain), founder of Cybercraft Labs — Offensive Security Researcher and Software Engineer, with hands-on experience across development, deployment, and security for close to a decade (8+ years).',
+    'I\'m Gaurav (thehackersbrain), Founder of Cybercraft Labs — Offensive Security Researcher and Software Engineer with close to a decade (8+ years) of experience.',
   href: 'https://thehackersbrain.dev',
   author: 'thehackersbrain',
   locale: 'en-US',
