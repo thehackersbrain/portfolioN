@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/utils'
 import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
 import type { CollectionEntry } from 'astro:content'
+import Callout from './Callout.astro'
 
 interface Props {
   project: CollectionEntry<'projects'>
@@ -41,6 +42,17 @@ const { project } = Astro.props
       <p class="text-muted-foreground mb-2 text-sm">
         {project.data.description}
       </p>
+      {
+        project.data.points && (
+          <Callout variant="tip" title="Achievements" class="mb-2 text-xs">
+            <ul class="list-inside list-disc text-xs">
+              {project.data.points.map((point: string) => (
+                <li set:html={point} />
+              ))}
+            </ul>
+          </Callout>
+        )
+      }
       {
         project.data.startDate && (
           <p class="text-muted-foreground/70 mb-2 flex items-center gap-x-1.5 text-xs">

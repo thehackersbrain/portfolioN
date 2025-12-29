@@ -6,4 +6,7 @@ image: './images/hiddenwave.png'
 link: 'https://github.com/thehackersbrain/hiddenwave'
 startDate: '2021-05-05'
 categories: ['cybersec']
+points: [
+    "Featured in a Netflix Hacking Series <strong>Gyeongseong Creature S2E1</strong>"
+]
 ---

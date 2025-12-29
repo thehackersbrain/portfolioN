@@ -46,6 +46,7 @@ const projects = defineCollection({
       endDate: z.coerce.date().optional(),
       featured: z.boolean().optional(),
       categories: z.array(z.string()).optional(),
+      points: z.array(z.string()).optional(),
     }),
 })
 
