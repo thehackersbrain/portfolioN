@@ -41,6 +41,25 @@ export async function getFeaturedProjects(): Promise<CollectionEntry<'projects'>
     })
 }
 
+export async function getAllWorks() {
+  const works = await getCollection('works')
+  return works.sort((a, b) => {
+    if (a.data.featured && !b.data.featured) return -1
+    if (!a.data.featured && b.data.featured) return 1
+    return a.data.name.localeCompare(b.data.name)
+  })
+}
+
+export async function getFeaturedWorks(limit?: number) {
+  const works = await getCollection('works', ({ data }) => data.featured === true)
+  const sorted = works.sort((a, b) => a.data.name.localeCompare(b.data.name))
+  return limit ? sorted.slice(0, limit) : sorted
+}
+
+export async function getPublishedWorks() {
+  return await getCollection('works')
+}
+
 export async function getProjectsByCategory(category: string): Promise<CollectionEntry<'projects'>[]> {
   const projects = await getCollection('projects')
   return projects

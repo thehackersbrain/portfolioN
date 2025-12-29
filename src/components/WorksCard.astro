@@ -1,0 +1,69 @@
+---
+import Link from '@/components/Link.astro'
+import { Badge } from '@/components/ui/badge'
+import { Image } from 'astro:assets'
+import type { CollectionEntry } from 'astro:content'
+import Callout from './Callout.astro'
+
+interface Props {
+    work: CollectionEntry<'works'>
+}
+
+const { work } = Astro.props
+---
+
+<div
+    class="hover:bg-muted/50 rounded-xl border p-4 transition-colors duration-300 ease-in-out"
+>
+    <Link
+        href={work.data.link}
+        class="flex flex-col gap-4 sm:flex-row"
+        external
+    >
+        {
+            work.data.image && (
+                <div class="max-h-630 w-full sm:max-w-3xs sm:shrink-0">
+                    <Image
+                        src={work.data.image}
+                        alt={work.data.name}
+                        width={1200}
+                        height={630}
+                        class="h-auto max-h-[200px] object-contain"
+                    />
+                </div>
+            )
+        }
+        <div class="grow">
+            <h3 class="font-ss-tech mb-1 text-lg font-medium">
+                {work.data.name}
+            </h3>
+            <p class="text-muted-foreground mb-2 text-sm">
+                {work.data.description}
+            </p>
+            {
+                work.data.points && (
+                    <Callout
+                        variant="tip"
+                        title="Achievements"
+                        class="mb-2 text-xs"
+                    >
+                        <ul class="list-inside list-disc text-xs">
+                            {work.data.points.map((point: string) => (
+                                <li set:html={point} />
+                            ))}
+                        </ul>
+                    </Callout>
+                )
+            }
+            {
+                work.data.tags && (
+                    <div class="flex flex-wrap gap-2">
+                        {work.data.tags.map((tag: string) => (
+                            <Badge variant="muted">{tag}</Badge>
+                        ))}
+                    </div>
+                )
+            }
+        </div>
+    </Link>
+</div>
