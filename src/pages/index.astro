@@ -4,6 +4,7 @@ import Link from '@/components/Link.astro'
 import PageHead from '@/components/PageHead.astro'
 import PFCard from '@/components/PFCard.astro'
 import PublishedWork from '@/components/PublishedWork.astro'
+import GithubCalendar from '@/components/react/GithubCalendar'
 import ResearchAndFeatures from '@/components/ResearchAndFeatures.astro'
 import { buttonVariants } from '@/components/ui/button'
 import { SITE } from '@/consts'
@@ -122,6 +123,15 @@ const websiteSchema = {
         >
       </Link>
     </div>
+  </section>
+
+  <section
+    class="text-muted-foreground flex flex-col items-center justify-center rounded-lg border p-6 pt-3 text-xs"
+  >
+    <GithubCalendar username="thehackersbrain" client:load />
+    <h2 class="font-ss-tech text-lg font-semibold">
+      Github Contribution Graph
+    </h2>
   </section>
 
   <section>
