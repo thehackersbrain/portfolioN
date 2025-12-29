@@ -1,7 +1,7 @@
 ---
 name: 'ThePhisher'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: "Automated social engineering framework built on Flask, orchestrating dynamic credential-harvesting portals  via Python-based local server deployment and rapid tunneling integration."
+tags: ['Python', 'Flask', 'Social Engineering', 'Phishing Automation', 'Offensive Security']
 image: './images/thephisher.png'
 link: 'https://github.com/thehackersbrain/thephisher'
 startDate: '2020-09-14'

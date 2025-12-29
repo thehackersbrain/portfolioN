@@ -1,7 +1,7 @@
 ---
 name: 'NetScan'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: "High-performance TCP port enumeration tool engineered in Go, leveraging lightweight goroutines for rapid, concurrent network scanning  and efficient open-port detection."
+tags: ['Golang', 'Network Security', 'Concurrency', 'Port Scanning', 'TCP/IP']
 image: './images/netscan.png'
 link: 'https://github.com/thehackersbrain/netscan'
 startDate: '2021-05-31'

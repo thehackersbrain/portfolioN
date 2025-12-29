@@ -1,7 +1,7 @@
 ---
 name: 'PassCraft'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A high-performance password profiling engine written in Rust that generates targeted wordlists based on personal information entities, designed for authorized red team operations and brute-force optimization.'
+tags: ['Rust', 'Offensive Security', 'Password Profiling', 'Social Engineering']
 image: './images/passcraft.png'
 link: 'https://github.com/thehackersbrain/passcraft'
 startDate: '2023-05-13'

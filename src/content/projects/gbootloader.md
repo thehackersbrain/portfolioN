@@ -1,7 +1,7 @@
 ---
 name: 'GBootLoader'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A custom x86 bootloader written in pure Assembly, handling BIOS interrupts to initialize memory and hand off control from the master boot record (MBR) to the kernel.'
+tags: ['x86 Assembly', 'Bootloader Design', 'BIOS Interrupts', 'Low Level Engineering', 'MBR']
 image: './images/gbootloader.png'
 link: 'https://github.com/thehackersbrain/gbootloader'
 startDate: '2022-07-04'

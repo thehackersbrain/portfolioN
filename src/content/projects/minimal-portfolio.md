@@ -1,7 +1,7 @@
 ---
 name: 'Minimal Portfolio'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A modern, responsive portfolio website built with Next.js and Three.js, featuring interactive 3D elements, Bento Grid layouts, and smooth Framer Motion animations.'
+tags: ['NextJS', 'Portfolio', 'ThreeJS', 'Framer Motion', 'ReactJS']
 image: './images/minimal-portfolio.png'
 link: 'https://minimal-portfolio-blue.vercel.app'
 startDate: '2024-07-12'

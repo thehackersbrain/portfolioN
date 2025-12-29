@@ -1,7 +1,7 @@
 ---
 name: 'HiddenPNG'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A cryptographically secure steganography engine built in Rust, utilizing AES encryption to embed hidden payloads within PNG bitstreams for covert communication.'
+tags: ['Rust', 'Steganography', 'Cryptography', 'Systems Programming']
 image: './images/hiddenpng.png'
 link: 'https://github.com/thehackersbrain/hiddenpng'
 startDate: '2023-02-09'

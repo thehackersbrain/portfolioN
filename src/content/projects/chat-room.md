@@ -1,7 +1,7 @@
 ---
 name: 'Chat Room'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A multi-threaded, terminal-based chat application built with raw Python sockets , demonstrating low-level network programming and concurrent connection handling without high-level frameworks.'
+tags: ['Socket Programming', 'Networking', 'Multithreading', 'Concurrency']
 image: './images/chat-room.png'
 link: 'https://github.com/thehackersbrain/chat-room'
 startDate: '2022-11-26'

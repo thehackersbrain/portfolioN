@@ -1,7 +1,7 @@
 ---
 name: 'Tech Book Latex Template'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A clean and structured LaTeX template specifically tailored for writing technical books, featuring configured build scripts and font management for a professional layout.'
+tags: ['Latex', 'TypeSetting', 'Technical Writing', 'Book Template', 'xelatex']
 image: './images/tech-book-latex-template.png'
 link: 'https://github.com/thehackersbrain/tech-book-template'
 startDate: '2025-04-24'

@@ -1,7 +1,7 @@
 ---
 name: 'Hiddenwave - Audio Steganography Tool'
-description: 'Hiddenwave is an audio steganography tool written in C++ for hiding your files or messages inside a .wav or .mp3 audio file.'
-tags: ['C++', 'Audio', 'Steganography', 'Encryption', 'AES Algorithm']
+description: "High-performance audio steganography utility written in C++, utilizing low-level memory manipulation to embed hidden files and messages directly into WAV audio bitstreams without perceptible degradation."
+tags: ['C++', 'Audio Steganography', 'Signal Processing', 'Data Hiding', 'Cryptography']
 image: './images/hiddenwave.png'
 link: 'https://github.com/thehackersbrain/hiddenwave'
 startDate: '2021-05-05'

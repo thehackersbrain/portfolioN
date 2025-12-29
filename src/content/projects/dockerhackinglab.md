@@ -1,7 +1,7 @@
 ---
 name: 'Docker Hacking Lab'
-description: 'A full-stack social media application built to explore scalable backend design and secure user interactions.'
-tags: ['ReactJS', 'Vercel', 'AppWrite', 'TypeScript', 'ReactQuery']
+description: 'A cloud-ready hacking lab environment deployed via Docker, designed to set up a Kali Linux instance with VNC access on platforms like Google Cloud Platform (GCP).'
+tags: ['Docker', 'Pentesting', 'Cloud Security', 'Hacking Lab', 'GCP']
 image: './images/dockerhackinglab.png'
 link: 'https://github.com/thehackersbrain/dockerhackinglab'
 startDate: '2024-12-01'
