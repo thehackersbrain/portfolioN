@@ -3,6 +3,7 @@ import BlogCard from '@/components/BlogCard.astro'
 import Link from '@/components/Link.astro'
 import PageHead from '@/components/PageHead.astro'
 import PFCard from '@/components/PFCard.astro'
+import ResearchAndFeatures from '@/components/ResearchAndFeatures.astro'
 import { buttonVariants } from '@/components/ui/button'
 import { SITE } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
@@ -94,6 +95,8 @@ const websiteSchema = {
       </Link>
     </div>
   </section>
+
+  <ResearchAndFeatures />
 
   <section class="flex flex-col gap-y-4">
     <h2 class="font-ss-tech text-2xl font-bold">Latest posts</h2>
