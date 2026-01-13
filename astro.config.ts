@@ -18,8 +18,11 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 
 import tailwindcss from '@tailwindcss/vite'
 
+import vercel from '@astrojs/vercel';
+
 export default defineConfig({
   site: 'https://thehackersbrain.dev',
+
   integrations: [
     expressiveCode({
       themes: ['github-light', 'github-dark', 'one-dark-pro'],
@@ -69,16 +72,20 @@ export default defineConfig({
     sitemap(),
     icon(),
   ],
+
   vite: {
     plugins: [tailwindcss()],
   },
+
   server: {
     port: 1234,
     host: true,
   },
+
   devToolbar: {
     enabled: false,
   },
+
   markdown: {
     syntaxHighlight: false,
     rehypePlugins: [
@@ -104,4 +111,6 @@ export default defineConfig({
     ],
     remarkPlugins: [remarkMath, remarkEmoji],
   },
+
+  adapter: vercel(),
 })
