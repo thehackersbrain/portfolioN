@@ -60,6 +60,22 @@ export async function getPublishedWorks() {
   return await getCollection('works')
 }
 
+export async function getAllWritings(): Promise<CollectionEntry<'writings'>[]> {
+  const writings = await getCollection('writings')
+  return writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+}
+
+export async function getFeaturedWritings(limit?: number): Promise<CollectionEntry<'writings'>[]> {
+  const writings = await getCollection('writings', ({ data }) => data.featured === true)
+  const sorted = writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  return limit ? sorted.slice(0, limit) : sorted
+}
+
+export async function getWritingsByType(type: string): Promise<CollectionEntry<'writings'>[]> {
+  const writings = await getCollection('writings', ({ data }) => data.type === type)
+  return writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+}
+
 export async function getProjectsByCategory(category: string): Promise<CollectionEntry<'projects'>[]> {
   const projects = await getCollection('projects')
   return projects

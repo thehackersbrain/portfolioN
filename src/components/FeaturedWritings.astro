@@ -1,0 +1,34 @@
+---
+import { getFeaturedWritings } from '@/lib/data-utils'
+import Link from './Link.astro'
+import { buttonVariants } from './ui/button'
+import WritingCard from './WritingCard.astro'
+
+const writings = await getFeaturedWritings(3)
+---
+
+{
+  writings.length > 0 && (
+    <section class="mt-4 flex flex-col gap-y-4">
+      <h2 class="font-ss-tech text-2xl font-bold">Featured Writings</h2>
+      <ul class="flex flex-col gap-y-4">
+        {writings.map((writing) => (
+          <li>
+            <WritingCard writing={writing} />
+          </li>
+        ))}
+      </ul>
+      <div class="flex justify-end">
+        <Link
+          href="/writings"
+          class={buttonVariants({ variant: 'ghost' }) + ' group'}
+        >
+          See all writings
+          <span class="ml-1.5 transition-transform group-hover:translate-x-1">
+            &rarr;
+          </span>
+        </Link>
+      </div>
+    </section>
+  )
+}

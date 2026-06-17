@@ -10,16 +10,12 @@ const PREVIEW_COUNT = 3
 
 const allProjects = await getAllProjects()
 const allCyberSec = await getProjectsByCategory('cybersec')
-const allResearch = await getProjectsByCategory('research')
-// const allWritings = await getAllWritings()
 
 const previewProjects = allProjects.slice(0, PREVIEW_COUNT)
 const previewCyberSec = allCyberSec.slice(0, PREVIEW_COUNT)
-const previewResearch = allResearch.slice(0, PREVIEW_COUNT)
 
 const hasMoreProjects = allProjects.length > PREVIEW_COUNT
 const hasMoreCyberSec = allCyberSec.length > PREVIEW_COUNT
-const hasMoreResearch = allResearch.length > PREVIEW_COUNT
 ---
 
 <Layout class="max-w-3xl">
@@ -62,14 +58,7 @@ const hasMoreResearch = allResearch.length > PREVIEW_COUNT
         hasMoreProjects={hasMoreCyberSec}
         endpoint="cybersecurity"
       />
-
-      <!-- Research Section -->
-      <WorkCategory
-        title="Writings & Research"
-        projects={previewResearch}
-        hasMoreProjects={hasMoreResearch}
-        endpoint="writings-and-research"
-      />
     </div>
   </section>
 </Layout>
+

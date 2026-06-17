@@ -1,0 +1,139 @@
+---
+import Link from '@/components/Link.astro'
+import { Badge } from '@/components/ui/badge'
+import { formatDate } from '@/lib/utils'
+import { Icon } from 'astro-icon/components'
+import type { CollectionEntry } from 'astro:content'
+
+interface Props {
+  writing: CollectionEntry<'writings'>
+}
+
+const { writing } = Astro.props
+
+const typeConfig: Record<
+  string,
+  { icon: string; label: string; color: string }
+> = {
+  paper: {
+    icon: 'lucide:file-text',
+    label: 'Research Paper',
+    color: 'text-blue-500 dark:text-blue-400',
+  },
+  sok: {
+    icon: 'lucide:file-search',
+    label: 'SoK Paper',
+    color: 'text-indigo-500 dark:text-indigo-400',
+  },
+  book: {
+    icon: 'lucide:book-open',
+    label: 'Book',
+    color: 'text-amber-500 dark:text-amber-400',
+  },
+  article: {
+    icon: 'lucide:newspaper',
+    label: 'Article',
+    color: 'text-emerald-500 dark:text-emerald-400',
+  },
+  thesis: {
+    icon: 'lucide:graduation-cap',
+    label: 'Thesis',
+    color: 'text-purple-500 dark:text-purple-400',
+  },
+  report: {
+    icon: 'lucide:clipboard-list',
+    label: 'Report',
+    color: 'text-rose-500 dark:text-rose-400',
+  },
+}
+
+const config = typeConfig[writing.data.type] || typeConfig.paper
+---
+
+<div
+  class="writing-card group hover:bg-muted/50 rounded-xl border p-5 transition-all duration-300 ease-in-out hover:shadow-sm"
+>
+  <div class="flex flex-col gap-3">
+    <!-- Type indicator and date row -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span
+          class:list={[
+            'flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase',
+            config.color,
+          ]}
+        >
+          <Icon name={config.icon} class="size-3.5" />
+          {config.label}
+        </span>
+      </div>
+      <span class="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <Icon name="lucide:calendar" class="size-3" />
+        {formatDate(writing.data.date)}
+      </span>
+    </div>
+
+    <!-- Title -->
+    {
+      writing.data.link ? (
+        <Link href={writing.data.link} external class="group/link">
+          <h3 class="font-ss-tech text-lg leading-snug font-medium group-hover/link:underline">
+            {writing.data.title}
+          </h3>
+        </Link>
+      ) : (
+        <h3 class="font-ss-tech text-lg leading-snug font-medium">
+          {writing.data.title}
+        </h3>
+      )
+    }
+
+    <!-- Description -->
+    <p class="text-muted-foreground text-sm leading-relaxed">
+      {writing.data.description}
+    </p>
+
+    <!-- Publication venue -->
+    {
+      writing.data.publication && (
+        <p class="text-muted-foreground/80 flex items-center gap-1.5 text-xs italic">
+          <Icon name="lucide:building-2" class="size-3 shrink-0" />
+          {writing.data.publication}
+        </p>
+      )
+    }
+
+    <!-- Co-authors -->
+    {
+      writing.data.coAuthors && writing.data.coAuthors.length > 0 && (
+        <p class="text-muted-foreground/80 flex items-center gap-1.5 text-xs">
+          <Icon name="lucide:users" class="size-3 shrink-0" />
+          <span>Co-authored with {writing.data.coAuthors.join(', ')}</span>
+        </p>
+      )
+    }
+
+    <!-- DOI -->
+    {
+      writing.data.doi && (
+        <p class="text-muted-foreground/80 flex items-center gap-1.5 text-xs">
+          <Icon name="lucide:link" class="size-3 shrink-0" />
+          <span class="font-mono">DOI: {writing.data.doi}</span>
+        </p>
+      )
+    }
+
+    <!-- Footer: Tags -->
+    {
+      writing.data.tags && writing.data.tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          {writing.data.tags.map((tag: string) => (
+            <Badge variant="muted" className="text-[0.65rem]">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</div>

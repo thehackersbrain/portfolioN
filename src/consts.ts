@@ -21,6 +21,10 @@ export const NAV_LINKS: SocialLink[] = [
     label: 'works',
   },
   {
+    href: '/writings',
+    label: 'writings',
+  },
+  {
     href: 'https://github.com/thehackersbrain/resume/blob/main/resume.pdf',
     label: 'resume',
   }

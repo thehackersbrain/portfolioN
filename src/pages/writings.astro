@@ -1,0 +1,99 @@
+---
+import Breadcrumbs from '@/components/Breadcrumbs.astro'
+import PageHead from '@/components/PageHead.astro'
+import WritingCard from '@/components/WritingCard.astro'
+import Layout from '@/layouts/Layout.astro'
+import { getAllWritings } from '@/lib/data-utils'
+
+const writings = await getAllWritings()
+
+// Group writings by type for organized display
+const papers = writings.filter((w) => w.data.type === 'paper')
+const books = writings.filter((w) => w.data.type === 'book')
+const articles = writings.filter((w) => w.data.type === 'article')
+const theses = writings.filter((w) => w.data.type === 'thesis')
+const reports = writings.filter((w) => w.data.type === 'report')
+const soks = writings.filter((w) => w.data.type === 'sok')
+
+type WritingSection = {
+  title: string
+  icon: string
+  items: typeof writings
+}
+
+const sections: WritingSection[] = [
+  { title: 'Research Papers', icon: '📄', items: papers },
+  { title: 'Systematization of Knowledge (SoK)', icon: '📖', items: soks },
+  { title: 'Books', icon: '📚', items: books },
+  { title: 'Articles', icon: '📰', items: articles },
+  { title: 'Theses', icon: '🎓', items: theses },
+  { title: 'Reports', icon: '📋', items: reports },
+].filter((s) => s.items.length > 0)
+---
+
+<Layout class="max-w-3xl">
+  <PageHead
+    slot="head"
+    title="Writings"
+    description="Public research writings, papers, and books by Gaurav Raj (thehackersbrain)."
+  />
+  <Breadcrumbs
+    items={[{ label: 'Writings', icon: 'lucide:pen-line' }]}
+  />
+
+  <section>
+    <div class="min-w-full">
+      <div class="prose mb-8">
+        <p class="mt-0">
+          Public research writings, papers, and books — documenting the things I
+          learn and build.
+        </p>
+      </div>
+
+      {
+        writings.length === 0 ? (
+          <div class="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
+            <span class="mb-3 text-4xl">✍️</span>
+            <h2 class="font-ss-tech text-xl font-semibold">
+              Writings coming soon
+            </h2>
+            <p class="text-muted-foreground mt-2 max-w-sm text-sm">
+              Research papers, books, and articles will appear here as they are
+              published.
+            </p>
+          </div>
+        ) : sections.length === 1 ? (
+          /* If only one type, show flat list without section headers */
+          <div class="flex flex-col gap-4">
+            {writings.map((writing) => (
+              <WritingCard writing={writing} />
+            ))}
+          </div>
+        ) : (
+          /* Multiple types: show grouped sections */
+          sections.map((section, index) => (
+            <>
+              <div class:list={['mb-8', index > 0 && 'mt-12']}>
+                <div class="mb-4 flex items-center gap-2">
+                  <span class="text-xl">{section.icon}</span>
+                  <h2 class="font-ss-tech text-2xl font-bold">
+                    {section.title}
+                  </h2>
+                  <span class="text-muted-foreground ml-1 text-sm">
+                    ({section.items.length})
+                  </span>
+                </div>
+                <div class="flex flex-col gap-4">
+                  {section.items.map((writing) => (
+                    <WritingCard writing={writing} />
+                  ))}
+                </div>
+              </div>
+              {index < sections.length - 1 && <hr />}
+            </>
+          ))
+        )
+      }
+    </div>
+  </section>
+</Layout>
