@@ -67,18 +67,20 @@ const works = defineCollection({
 
 const writings = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/writings' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    date: z.coerce.date(),
-    type: z.enum(['paper', 'book', 'article', 'thesis', 'report', 'sok']),
-    publication: z.string().optional(),
-    coAuthors: z.array(z.string()).optional(),
-    tags: z.array(z.string()).optional(),
-    link: z.string().url().optional(),
-    doi: z.string().optional(),
-    featured: z.boolean().optional(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      date: z.coerce.date(),
+      type: z.enum(['paper', 'book', 'article', 'thesis', 'report', 'sok']),
+      image: image().optional(),
+      publication: z.string().optional(),
+      coAuthors: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional(),
+      link: z.string().url().optional(),
+      doi: z.string().optional(),
+      featured: z.boolean().optional(),
+    }),
 })
 
 export const collections = { blog, authors, projects, works, writings }
