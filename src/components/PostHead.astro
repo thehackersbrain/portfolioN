@@ -1,6 +1,6 @@
 ---
 import { SITE } from '@/consts'
-import { isSubpost } from '@/lib/data-utils'
+import { isSubpost, parseAuthors } from '@/lib/data-utils'
 import type { CollectionEntry } from 'astro:content'
 
 interface Props {
@@ -11,16 +11,21 @@ const { post } = Astro.props
 
 const title = post.data.title || SITE.title
 const description = post.data.description || SITE.description
-const image = new URL('/static/1200x630.png', Astro.site)
-const author =
-  post.data.authors && post.data.authors.length > 0
-    ? post.data.authors.join(', ')
-    : SITE.author
+const site = Astro.site ?? new URL(SITE.href)
 
-const postUrl = new URL(Astro.url.pathname, Astro.site).href
-const postImage = post?.data?.image?.src
-  ? `${SITE.href}${post.data.image.src}`
-  : image.href
+const authors = await parseAuthors(post.data.authors ?? [])
+const authorNames = authors.length ? authors.map((a) => a.name) : [SITE.name]
+
+const canonicalURL = new URL(
+  Astro.url.pathname.replace(/\/+$/, '') || '/',
+  site,
+)
+
+// Prefer the post's own cover image; fall back to the site-wide OG card.
+const image = post.data.image?.src
+  ? new URL(post.data.image.src, site)
+  : new URL('/static/1200x630.png', site)
+
 const publishedTime = post.data.date?.toISOString() || new Date().toISOString()
 // Use published time as modified time if no updatedDate field exists
 const modifiedTime = publishedTime
@@ -29,85 +34,96 @@ const modifiedTime = publishedTime
 const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
-  headline: title,
-  description: description,
-  image: postImage,
+  headline: title.slice(0, 110),
+  description,
+  image: image.href,
   datePublished: publishedTime,
   dateModified: modifiedTime,
-  author: {
+  inLanguage: SITE.locale,
+  author: authorNames.map((name) => ({
     '@type': 'Person',
-    name: author,
+    name,
     url: SITE.href,
-  },
+  })),
   publisher: {
-    '@type': 'Organization',
-    name: SITE.title,
+    '@type': 'Person',
+    name: SITE.name,
     url: SITE.href,
-    logo: {
-      '@type': 'ImageObject',
-      url: new URL('/reworkedmeroxdc1.webp', Astro.site).href,
-    },
   },
   mainEntityOfPage: {
     '@type': 'WebPage',
-    '@id': postUrl,
+    '@id': canonicalURL.href,
   },
-  url: postUrl,
+  url: canonicalURL.href,
   ...(post.data.tags &&
     post.data.tags.length > 0 && {
       keywords: post.data.tags.join(', '),
     }),
 }
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.href },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Blog',
+      item: new URL('/blog', site).href,
+    },
+    { '@type': 'ListItem', position: 3, name: title, item: canonicalURL.href },
+  ],
+}
 ---
 
-<title>{`${title} - ${SITE.title}`}</title>
-<meta name="title" content={`${title} - ${SITE.title}`} />
+<title>{`${title} | ${SITE.title}`}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={SITE.href} />
+<meta name="author" content={authorNames.join(', ')} />
+<link rel="canonical" href={canonicalURL.href} />
 
-{isSubpost(post.id) && <meta name="robots" content="noindex" />}
+{
+  isSubpost(post.id) ? (
+    <meta name="robots" content="noindex, follow" />
+  ) : (
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+  )
+}
 
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta
-  property="og:image"
-  content={post?.data?.image?.src
-    ? `${SITE.href}${post.data.image.src}`
-    : image}
-/>
+<meta property="og:image" content={image.href} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={title} />
-<meta property="og:type" content="website" />
-<meta property="og:locale" content={SITE.locale} />
+<meta property="og:type" content="article" />
+<meta property="og:locale" content={SITE.ogLocale} />
 <meta property="og:site_name" content={SITE.title} />
-<meta property="og:url" content={Astro.url} />
-<meta property="og:author" content={author} />
+<meta property="og:url" content={canonicalURL.href} />
 
-<meta name="twitter:title" content={title} />
-<meta name="twitter:description" content={description} />
-<meta
-  property="twitter:image"
-  content={post?.data?.image?.src
-    ? `${SITE.href}${post.data.image.src}`
-    : image}
-/>
-<meta name="twitter:image:alt" content={title} />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:creator" content={author} />
-
+<meta property="article:published_time" content={publishedTime} />
+<meta property="article:modified_time" content={modifiedTime} />
+{authorNames.map((name) => <meta property="article:author" content={name} />)}
 {
-  post?.data.tags &&
-    post.data.tags.map((tag: string) => {
-      return <meta property="article:tag" content={tag} />
-    })
+  post.data.tags?.map((tag: string) => (
+    <meta property="article:tag" content={tag} />
+  ))
 }
 
-<!-- Enhanced Twitter Card tags -->
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={postImage} />
+<meta name="twitter:image" content={image.href} />
 <meta name="twitter:image:alt" content={title} />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:creator" content={author} />
+<meta name="twitter:site" content="@thehackersbrain" />
+<meta name="twitter:creator" content="@thehackersbrain" />
 
 <!-- Article Schema Markup for AI/GEO and Rich Snippets -->
 <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+<script
+  type="application/ld+json"
+  set:html={JSON.stringify(breadcrumbSchema)}
+/>

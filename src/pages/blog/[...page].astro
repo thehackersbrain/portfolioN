@@ -24,13 +24,23 @@ const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a))
 ---
 
 <Layout class="max-w-3xl">
-  <PageHead slot="head" title="Blog" />
+  <PageHead
+    slot="head"
+    title={page.currentPage > 1 ? `Blog — Page ${page.currentPage}` : 'Blog'}
+    description={`Posts on offensive security, systems programming and Linux internals by ${SITE.name}.`}
+    prev={page.url.prev}
+    next={page.url.next}
+  />
   <Breadcrumbs
     items={[
       { label: 'Blog', href: '/blog', icon: 'lucide:library-big' },
       { label: `Page ${page.currentPage}`, icon: 'lucide:book-copy' },
     ]}
   />
+
+  <h1 class="font-ss-tech text-3xl font-bold">
+    Blog{page.currentPage > 1 && ` — Page ${page.currentPage}`}
+  </h1>
 
   <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
     {

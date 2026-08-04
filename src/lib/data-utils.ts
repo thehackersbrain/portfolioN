@@ -30,7 +30,9 @@ export async function getAllProjects(): Promise<CollectionEntry<'projects'>[]> {
   })
 }
 
-export async function getFeaturedProjects(): Promise<CollectionEntry<'projects'>[]> {
+export async function getFeaturedProjects(): Promise<
+  CollectionEntry<'projects'>[]
+> {
   const projects = await getCollection('projects')
   return projects
     .filter((project) => project.data.featured === true)
@@ -51,7 +53,10 @@ export async function getAllWorks() {
 }
 
 export async function getFeaturedWorks(limit?: number) {
-  const works = await getCollection('works', ({ data }) => data.featured === true)
+  const works = await getCollection(
+    'works',
+    ({ data }) => data.featured === true,
+  )
   const sorted = works.sort((a, b) => a.data.name.localeCompare(b.data.name))
   return limit ? sorted.slice(0, limit) : sorted
 }
@@ -65,18 +70,32 @@ export async function getAllWritings(): Promise<CollectionEntry<'writings'>[]> {
   return writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 }
 
-export async function getFeaturedWritings(limit?: number): Promise<CollectionEntry<'writings'>[]> {
-  const writings = await getCollection('writings', ({ data }) => data.featured === true)
-  const sorted = writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+export async function getFeaturedWritings(
+  limit?: number,
+): Promise<CollectionEntry<'writings'>[]> {
+  const writings = await getCollection(
+    'writings',
+    ({ data }) => data.featured === true,
+  )
+  const sorted = writings.sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  )
   return limit ? sorted.slice(0, limit) : sorted
 }
 
-export async function getWritingsByType(type: string): Promise<CollectionEntry<'writings'>[]> {
-  const writings = await getCollection('writings', ({ data }) => data.type === type)
+export async function getWritingsByType(
+  type: string,
+): Promise<CollectionEntry<'writings'>[]> {
+  const writings = await getCollection(
+    'writings',
+    ({ data }) => data.type === type,
+  )
   return writings.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 }
 
-export async function getProjectsByCategory(category: string): Promise<CollectionEntry<'projects'>[]> {
+export async function getProjectsByCategory(
+  category: string,
+): Promise<CollectionEntry<'projects'>[]> {
   const projects = await getCollection('projects')
   return projects
     .filter((project) => project.data.categories?.includes(category))
@@ -87,15 +106,44 @@ export async function getProjectsByCategory(category: string): Promise<Collectio
     })
 }
 
+export type Tag = {
+  /** URL-safe identifier used in `/tags/<slug>`. */
+  slug: string
+  /** Human-readable label as written in the post frontmatter. */
+  label: string
+  count: number
+}
 
-export async function getAllTags(): Promise<Map<string, number>> {
+/**
+ * Turns a free-form tag into a URL-safe slug. Tags are authored by hand, so
+ * this is what stops `Cloud Hacking` from producing a URL with a space in it
+ * and `Cybersecurity`/`cybersecurity` from splitting one topic across two pages.
+ */
+export function slugifyTag(tag: string): string {
+  return tag
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export async function getAllTags(): Promise<Map<string, Tag>> {
   const posts = await getAllPosts()
   return posts.reduce((acc, post) => {
     post.data.tags?.forEach((tag) => {
-      acc.set(tag, (acc.get(tag) || 0) + 1)
+      const slug = slugifyTag(tag)
+      if (!slug) return
+      const existing = acc.get(slug)
+      if (existing) {
+        existing.count += 1
+      } else {
+        acc.set(slug, { slug, label: tag, count: 1 })
+      }
     })
     return acc
-  }, new Map<string, number>())
+  }, new Map<string, Tag>())
 }
 
 export async function getAdjacentPosts(currentId: string): Promise<{
@@ -164,11 +212,14 @@ export async function getPostsByAuthor(
   return posts.filter((post) => post.data.authors?.includes(authorId))
 }
 
+/** Matches on the slug, so `Cybersecurity` and `cybersecurity` land together. */
 export async function getPostsByTag(
-  tag: string,
+  tagSlug: string,
 ): Promise<CollectionEntry<'blog'>[]> {
   const posts = await getAllPosts()
-  return posts.filter((post) => post.data.tags?.includes(tag))
+  return posts.filter((post) =>
+    post.data.tags?.some((tag) => slugifyTag(tag) === tagSlug),
+  )
 }
 
 export async function getRecentPosts(
@@ -178,16 +229,12 @@ export async function getRecentPosts(
   return posts.slice(0, count)
 }
 
-export async function getSortedTags(): Promise<
-  { tag: string; count: number }[]
-> {
-  const tagCounts = await getAllTags()
-  return [...tagCounts.entries()]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => {
-      const countDiff = b.count - a.count
-      return countDiff !== 0 ? countDiff : a.tag.localeCompare(b.tag)
-    })
+export async function getSortedTags(): Promise<Tag[]> {
+  const tags = await getAllTags()
+  return [...tags.values()].sort((a, b) => {
+    const countDiff = b.count - a.count
+    return countDiff !== 0 ? countDiff : a.label.localeCompare(b.label)
+  })
 }
 
 export function getParentId(subpostId: string): string {

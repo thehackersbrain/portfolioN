@@ -32,6 +32,8 @@ const authorPosts = await getPostsByAuthor(author.id)
     ]}
   />
 
+  <h1 class="font-ss-tech text-3xl font-bold">{author.data.name}</h1>
+
   <section>
     <AuthorCard author={author} />
   </section>

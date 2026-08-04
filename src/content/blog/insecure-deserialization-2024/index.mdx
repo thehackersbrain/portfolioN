@@ -2,16 +2,16 @@
 title: Unveiling the Dangers of Insecure Deserialization!
 description: Insecure deserialization in web apps is a critical vuln that allows attackers to exploit serialized objects for code execution.
 date: 2025-03-25
-tags: ['Insecure Deserialization', 'Web Security']
+tags: ['insecure-deserialization', 'web-security']
 image: 'assets/banner.png'
 authors: ['thehackersbrain']
 ---
 
-# Introduction
+## Introduction
 
 In this post, we are going to explore one of the lesser-known yet highly dangerous vulnerability called **Insecure Deserialization**. This vulnerability can expose your applications to significant risks, making it a crucial issue for developers and cybersecurity professionals to address. Before diving deep into _What is Insecure Deserialization?_ First let's disscuss what is **serialization** and **deserialization**.
 
-## Serialization
+### Serialization
 
 **Serialization** is the process of converting an object or data structure into a format that can be easily stored or transmitted. This process is crucial in scenarios where data needs to be saved persistently or shared across different parts of an application, between different applications, or over a network.
 Serialization typically involves transforming the object into a sequence of bytes or a structured format like _JSON_, _XML_, or _binary_. The serialized data can be stored in a file, sent over a network, or saved in a database file. When serializing an object, its state is also persisted. In other words, the object's attributes are preserved, along with their assigned values.
@@ -188,7 +188,7 @@ print(pickletools.dis(serialized))
 
 ---
 
-## Deserialization
+### Deserialization
 
 **Deserialization** is the reverse of serialization—it converts the _serialized_ data back into an object or data structure that the application can use. _Deserialization_ is essential when an application needs to retrieve and use data that was previously serialized, such as loading a saved game state or restoring a user’s session in a web application.
 
@@ -227,12 +227,12 @@ we use `loads()` function from `pickle` module to _deserialize_ a _serialized_ o
 
 Now let's get back to our original topic: **Insecure Deserialization**.
 
-## The Vulnerability
+### The Vulnerability
 
 While _serialization_ and _deserialization_ are powerful tools, they come with significant risks when not implemented securely. **Insecure Deserialization** occurs when an application _deserializes_ data from an untrusted source without proper validation or security checks. This can allow attackers to manipulate the _serialized_ data and inject malicious code or instructions, leading to severe security issues or vulnerabilities, as most of the data that is being _serialized_ is **user-controllable**.
 <br/>Ideally, user input or user-controllable data should never be _deserialized_ at all. However, sometimes the developer assumes they are safe from these attacks as they have implemented some form of additional checks on _deserialized_ data. These checks are also fundamentally flawed as they rely on checking the data after it has been _deserialized_, which in many cases is too late to prevent the attack. we will see a practical example of this, later in this article.
 
-## The Exploit
+### The Exploit
 
 Let's revisit our previous `client.py` and `server.py` programs. Assume that the `server.py` file is the _server_ which looks for stored serialized file from the client side, and then deserializes and uses it on the server side. To exploit **insecure deserialization** vulnerabilities, the attack injects malicious code or instructions in the _serialized_ data which later performs its execution on the server side after or while the data is _deserialized_. Let's prepare our payload for a _command execution_ on the server.
 
@@ -319,7 +319,7 @@ print(deserialized.summary()) # highlight-line
 
 and There we have it. our payload worked.
 
-## Conclusion
+### Conclusion
 
 Serialization and deserialization are indispensable tools in modern software development, enabling efficient data storage and transmission across a wide range of applications. However, the power of these processes comes with significant risks, especially when it comes to insecure deserialization. By understanding the dangers and implementing robust security measures, developers and security professionals can protect their applications from the potentially devastating consequences of this hidden vulnerability.
 

@@ -1,7 +1,7 @@
 import { SITE } from '@/consts'
+import { getAllPosts } from '@/lib/data-utils'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
-import { getAllPosts } from '@/lib/data-utils'
 
 export async function GET(context: APIContext) {
   try {
@@ -11,12 +11,16 @@ export async function GET(context: APIContext) {
       title: SITE.title,
       description: SITE.description,
       site: context.site ?? SITE.href,
+      trailingSlash: false,
       items: posts.map((post) => ({
         title: post.data.title,
         description: post.data.description,
         pubDate: post.data.date,
-        link: `/blog/${post.id}/`,
+        link: `/blog/${post.id}`,
+        author: SITE.name,
+        categories: post.data.tags,
       })),
+      customData: `<language>${SITE.locale.toLowerCase()}</language>`,
     })
   } catch (error) {
     console.error('Error generating RSS feed:', error)

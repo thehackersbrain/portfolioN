@@ -19,13 +19,18 @@ const hasMoreCyberSec = allCyberSec.length > PREVIEW_COUNT
 ---
 
 <Layout class="max-w-3xl">
-  <PageHead slot="head" title="Works" />
+  <PageHead
+    slot="head"
+    title="Works"
+    description="Projects and security work by Gaurav Raj (thehackersbrain) — operating systems, kernel and low-level tooling alongside offensive security research."
+  />
   <Breadcrumbs
     items={[{ label: 'Works', icon: 'lucide:gallery-vertical-end' }]}
   />
 
   <section>
     <div class="min-w-full">
+      <h1 class="font-ss-tech mb-2 text-3xl font-bold">Works</h1>
       <div class="prose mb-8">
         <p class="mt-0">Some of the works that I've done...</p>
       </div>
@@ -37,10 +42,10 @@ const hasMoreCyberSec = allCyberSec.length > PREVIEW_COUNT
           {
             hasMoreProjects && (
               <a
-                href="/works/projects/2"
+                href="/works/projects"
                 class="text-muted-foreground text-sm hover:underline"
               >
-                View all →
+                View all projects →
               </a>
             )
           }
@@ -61,4 +66,3 @@ const hasMoreCyberSec = allCyberSec.length > PREVIEW_COUNT
     </div>
   </section>
 </Layout>
-

@@ -7,7 +7,7 @@ image: 'assets/banner.png'
 authors: ['thehackersbrain']
 ---
 
-# Introduction
+## Introduction
 
 Hello Everyone! I'm Gaurav, A Security Researcher and a Developer. Recently, I've been using `Docker` and Cloud platform like `AWS` and `GCP` quite a lot due to the recent project I was working on as a Developer. While I had my developer's hat on, I thought, why not create a lab as IaC (_Infrastructure as Code_) using docker.
 
@@ -15,7 +15,7 @@ It wasn't a planned project, more like a curious and out-of-the-blue thought.
 
 For those who don't know what `docker`, `AWS`, and `GCP` are. Let me give you a bit of context here.
 
-## Docker, Vagrant, and Cloud Platforms.
+### Docker, Vagrant, and Cloud Platforms.
 
 **Docker** is a tool that helps developers and system administrators to create, deploy, and run applications inside `containers`. However in the context of this project (creating our own hacking lab on cloud) you don't have to completely understand or know your way around `docker`.
 
@@ -35,7 +35,7 @@ In the context of development and deployment, engineers use `docker` extensively
 
 Okay, got that! Let's take a look at docker and cybersecurity.
 
-### Docker and Cybersecurity
+#### Docker and Cybersecurity
 
 In the context of cybersecurity, **Docker** can also be helpful, for example:
 
@@ -46,14 +46,14 @@ In the context of cybersecurity, **Docker** can also be helpful, for example:
 - **Staying Up-to-Date**: Docker is widely used in modern infrastructure, so learning it keeps you relevant in cybersecurity.
 - **Understanding Orchestration**: Docker is essential for securing container orchestration platforms like Kubernetes.
 
-#### Resources for learning docker
+##### Resources for learning docker
 
 - [Complete Docker Course - From BEGINNER to PRO! - Youtube](https://youtu.be/RqTEHSBrYFw)
 - [Docker Tutorials, Projects - NetworkChuck - Youtube](https://www.youtube.com/watch?v=dH3DdLy574M&list=PLIhvC56v63IJlnU4k60d0oFIrsbXEivQo)
 
 Okay, now we know what we are going to use to setup our hacking lab. The second thing is where?
 
-## Cloud Platforms (GCP, AZURE, AWS etc.)
+### Cloud Platforms (GCP, AZURE, AWS etc.)
 
 There are tons of cloud platforms out there, if you can afford it, that's awesome. Some suggestions? Here you go
 
@@ -70,7 +70,7 @@ So go on ahead, create an account on any of them, and sign up for either the fre
 
 Now that we covered what and where of the lab. Let's tackle the HOW?
 
-# Setup
+## Setup
 
 For the lab setup, the vulnerable applications are:
 
@@ -83,7 +83,7 @@ and for the attacking machine, we are going to use:
 
 - [Kali Linux](https://kali.org)
 
-## The Files structure
+### The Files structure
 
 The only file you're going to need is the `docker-compose.yaml` file, which is already uploaded on github, you can find it [here](https://github.com/thehackersbrain/dockerhackinglab).
 
@@ -99,7 +99,7 @@ Here's the complete file structure for the projects.
 
 - `docker-compose.yaml`: This file will run the lab with _Kali Linux_ on the Web and other vulnerable applications.
 
-### The `docker-compose.yaml` file
+#### The `docker-compose.yaml` file
 
 Here's the complete `docker-compose.yaml` file with explainations.
 
@@ -157,14 +157,14 @@ networks:
         - subnet: 172.18.0.0/16 
 ```
 
-##### Attacking Machine
+###### Attacking Machine
 
 - `kali-desktop`: running kali linux out attacking machine.
   - `security_network:`: connecting to the bridged NIC
     - `ipv4_address: 172.18.0.4`: assigning static IP.
   - `ports:`: mapping ports to the host to connect to the container.
 
-##### Vulnerable Labs
+###### Vulnerable Labs
 
 - `dvwa`: running Damn Vulnerable Web Application (DVWA)
 
@@ -177,14 +177,14 @@ networks:
     - `ipv4_address: 172.18.0.2`: assigning static IP (so that we don't have to guess the IP everytime).
     - `ports`: mapping the ports to the host
 
-##### Other Configurations
+###### Other Configurations
 
 - `networks`: creating a custom NIC
   - `security_network`: naming the NIC
     - `internal: true`: making it an internal and isolated network so that, it can't be reached by other systems.
     - `subnet: 172.18.0.0/16`: assigning custom IP Range.
 
-# Running the Lab
+## Running the Lab
 
 Now that we have everything out of the way, let's just run the lab.
 
